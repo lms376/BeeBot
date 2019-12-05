@@ -1,10 +1,13 @@
 package com.mygdx.game.bees;
 
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.mygdx.game.WorldController;
 import com.mygdx.game.obstacle.BoxObstacle;
 import com.mygdx.game.obstacle.Obstacle;
@@ -95,9 +98,11 @@ public class BeeController extends WorldController implements ContactListener {
         obj1.setName("wall1");
         addObject(obj1);
 
-        FlowerModel flower = new FlowerModel(20,5, 2,0.25f);
-        flower.setDrawScale(scale);
-        addObject(flower);
+        generateFlowers(15);
+
+//        FlowerModel flower = new FlowerModel(20,5, 2,0.25f);
+//        flower.setDrawScale(scale);
+//        addObject(flower);
 
         BeeModel bee;
         dwidth = beeTexture.getRegionWidth()/scale.x;
@@ -107,6 +112,101 @@ public class BeeController extends WorldController implements ContactListener {
         //bee.setTexture(beeTexture);
         addObject(bee);
         testBee = bee;
+    }
+
+    private void generateFlowers(int count) {
+        float hiveSize = 200 / scale.x,
+                screenSize = 1600 / scale.x,
+                middle = (800 / scale.x),
+                flowerAreaSize = (screenSize - 2*hiveSize)/2f,
+                leftEnd = flowerAreaSize,
+                rightStart = middle + hiveSize,
+                minGap = 1;
+
+        if (count > flowerAreaSize) count = (int) flowerAreaSize - 1;
+
+        int max = count;
+        if (count > 2 *flowerAreaSize / 2.5) max = (int) (2 *flowerAreaSize / 2.5);
+
+        int left = (int)(Math.random()*max);
+        int right = max - left;
+
+        float minHeight = 1.5f, maxHeight = 4;
+
+        //left to right
+        float[] leftWidths = new float[left],
+                rightWidths = new float[right];
+        float leftBound = 0, rightBound = 0;
+
+        for (int i = 0; i < left; i++) {
+            float width = generateWidth();
+            leftWidths[i] = width;
+            if (i > 0) leftBound += width + minGap;
+        }
+
+        for (int i = 0; i < right; i++) {
+            float width = generateWidth();
+            rightWidths[i] = width;
+            if (i > 0) rightBound += width + minGap;
+        }
+
+        //left
+        if (leftWidths.length > 0) {
+            float loc = 0;
+            int f = 0,
+            numAdded = 0;
+            while ( numAdded < left) {
+                float width = leftWidths[f];
+                float height = (float) Math.random()*(maxHeight - minHeight + 1) + minHeight;
+
+                if (loc + width/2 > leftEnd) break;
+
+                FlowerModel flower = new FlowerModel(loc + width/2,height, width, .25f);
+                flower.setDrawScale(scale);
+                addObject(flower);
+
+                loc += width + generateGap(minGap, (leftEnd - leftBound - loc));
+                leftBound -= (width + minGap);
+                numAdded++;
+                f++;
+            }
+        }
+
+        //right
+        if (rightWidths.length > 0) {
+            float loc = rightStart;
+            int f = 0,
+                    numAdded = 0;
+            while (numAdded < right) {
+                float width = rightWidths[f];
+                float height = (float) Math.random()*(maxHeight - minHeight + 1) + minHeight;
+
+                if (loc + width/2 > screenSize) break;
+
+                FlowerModel flower = new FlowerModel(loc + width / 2, height, width, .25f);
+                flower.setDrawScale(scale);
+                addObject(flower);
+
+                loc += width + generateGap(minGap, (screenSize - rightBound - loc));
+                rightBound -= (width + minGap);
+                numAdded++;
+                f++;
+            }
+        }
+    }
+
+    private float generateWidth() {
+        float min = 50f,
+                max = 150f;
+
+        return (float)(Math.random()*((max - min) + 1) + min)/100;
+    }
+
+    private float generateGap(float min, float max) {
+        if (min > max) return max;
+        min*=100; max*=100;
+        float gap = (float)(Math.random()*((max - min) + 1) + min)/100;
+        return gap;
     }
 
     @Override
