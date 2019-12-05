@@ -30,6 +30,8 @@ public class BeeController extends WorldController implements ContactListener {
     private BeeBrain brain;
     private HiveMind mind;
 
+    private static final float FLOWER_RATIO = 4/1;
+
     public BeeController(){
         setDebug(false);
         setComplete(false);
@@ -98,11 +100,8 @@ public class BeeController extends WorldController implements ContactListener {
         obj1.setName("wall1");
         addObject(obj1);
 
-//        generateFlowers(15);
+        generateFlowers(15);
 
-//        FlowerModel flower = new FlowerModel(20,5, 2,0.25f);
-//        flower.setDrawScale(scale);
-//        addObject(flower);
         FlowerModel flower = new FlowerModel(15,5, 2,0.25f);
         flower.setDrawScale(scale);
         addObject(flower);
@@ -128,11 +127,16 @@ public class BeeController extends WorldController implements ContactListener {
 
         if (count > flowerAreaSize) count = (int) flowerAreaSize - 1;
 
-        int max = count;
-        if (count > 2 *flowerAreaSize / 2.5) max = (int) (2 *flowerAreaSize / 2.5);
+        int maxTotal = count;
+        if (count > 2 * flowerAreaSize / 2.5) maxTotal = (int) (2 * flowerAreaSize / 2.5);
+
+        int maxSide = (int)(flowerAreaSize / 2.5);
+
+        int max = maxTotal;
+        if (count > maxSide) max = maxSide;
 
         int left = (int)(Math.random()*max);
-        int right = max - left;
+        int right = maxTotal - left > maxSide ? maxSide : maxTotal - left;
 
         float minHeight = 1.5f, maxHeight = 4;
 
@@ -164,7 +168,7 @@ public class BeeController extends WorldController implements ContactListener {
 
                 if (loc + width/2 > leftEnd) break;
 
-                FlowerModel flower = new FlowerModel(loc + width/2,height, width, .25f);
+                FlowerModel flower = new FlowerModel(loc + width/2,height, width, width/FLOWER_RATIO);
                 flower.setDrawScale(scale);
                 addObject(flower);
 
@@ -186,7 +190,7 @@ public class BeeController extends WorldController implements ContactListener {
 
                 if (loc + width/2 > screenSize) break;
 
-                FlowerModel flower = new FlowerModel(loc + width / 2, height, width, .25f);
+                FlowerModel flower = new FlowerModel(loc + width / 2, height, width, width/FLOWER_RATIO);
                 flower.setDrawScale(scale);
                 addObject(flower);
 
