@@ -167,16 +167,20 @@ public class BeeModel extends BeeObstacle {
 
         Pixmap p = new Pixmap(width, diameter, Pixmap.Format.RGBA8888);
 
-        p.setColor(Color.SKY);
-        p.fill();
+//        p.setColor(Color.SKY);
+//        p.fill();
+//
+//        //draw bee
+//        p.setColor(Color.YELLOW);
+//        p.fillCircle(radius, radius,radius);
+//        p.fillCircle(radius + rectangleWidth, radius, radius);
+//        p.fillRectangle(diameter/2, 0, rectangleWidth, diameter);
+//
+//        Texture t = new Texture(p, Pixmap.Format.RGB888, false);
 
-        //draw bee
-        p.setColor(Color.YELLOW);
-        p.fillCircle(radius, radius,radius);
-        p.fillCircle(radius + rectangleWidth, radius, radius);
-        p.fillRectangle(diameter/2, 0, rectangleWidth, diameter);
 
-        Texture t = new Texture(p, Pixmap.Format.RGB888, false);
+//25x12
+        Texture t = new Texture("bee/test.png");
 
         canvas.draw(t, x, y);
 
