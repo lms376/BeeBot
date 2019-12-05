@@ -7,8 +7,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.mygdx.game.GameCanvas;
 import com.mygdx.game.obstacle.BoxObstacle;
+import com.mygdx.game.obstacle.FlowerObstacle;
 
-public class FlowerModel extends BoxObstacle{
+public class FlowerModel extends FlowerObstacle {
 
     private int nectar;
     private int pollen;
