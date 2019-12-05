@@ -66,6 +66,9 @@ public class CapsuleObstacle extends SimpleObstacle {
     private Orientation orient;
 	/** Cache of the polygon vertices (for resizing) */
 	private float[] vertices;
+
+	protected PolygonShape feet = new PolygonShape();
+	private Fixture feetSense;
 	
 	/** A cache value for computing fixtures */
 	private Vector2 posCache = new Vector2();
@@ -453,6 +456,15 @@ public class CapsuleObstacle extends SimpleObstacle {
 			break;
 		}
 
+		//foot sensor
+		feet.setAsBox(.1f,.1f, new Vector2(0,-dimension.y/2 + seamEpsilon),0);
+		fixture.shape = feet;
+		fixture.isSensor = true;
+		feetSense = body.createFixture(fixture);
+		feetSense.setUserData("feet");
+
+		//more sensors
+
 		markDirty(false);
 	}
 
@@ -485,6 +497,7 @@ public class CapsuleObstacle extends SimpleObstacle {
 	 */
 	public void drawDebug(GameCanvas canvas) {
 		canvas.drawPhysics(shape,Color.YELLOW,getX(),getY(),getAngle(),drawScale.x,drawScale.y);
+		canvas.drawPhysics(feet, Color.YELLOW, getX(), getY(), getAngle(), drawScale.x, drawScale.y);
 		if (cap1 != null) {
 			// Need to manually rotate caps off axis
 			float dx; float dy;

@@ -978,7 +978,6 @@ public abstract class Obstacle {
 	 * primary purpose is to adjust changes to the fixture, which have to take place 
 	 * after collision.
 	 *
-	 * @param dt Timing values from parent loop
 	 */
 	public void update(float delta) { 
 	}

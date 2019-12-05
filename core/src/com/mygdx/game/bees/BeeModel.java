@@ -5,37 +5,43 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Affine2;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.physics.box2d.*;
 import com.mygdx.game.GameCanvas;
+import com.mygdx.game.obstacle.BeeObstacle;
 import com.mygdx.game.obstacle.CapsuleObstacle;
 
-public class BeeModel extends CapsuleObstacle {
+public class BeeModel extends BeeObstacle {
 
 
     public BeeModel(float x, float y, float width, float height) {
 
         super(x, y, width, height);
+
         BEE_WIDTH = width;
         BEE_HEIGHT = height;
-        currentEnergy = 8;
-        currentPollen = 5;
+        currentEnergy = 1000;
+        currentPollen = 0;
     }
 
     private static final float BEE_DENSITY  =  1.0f;
     private static final float BEE_FRICTION = 0.1f;
     private static final float BEE_RESTITUTION = 0.4f;
-    private static final float BEE_THRUST = 60.0f;
+    private static final float BEE_THRUST = 120.0f;
 
-    private static final float MAX_POLLEN = 10f;
-    private static final float MAX_ENERGY = 10f;
+    private static final float MAX_POLLEN = 200f;
+    private static final float MAX_ENERGY = 1000f;
 
     private float BEE_WIDTH;
     private float BEE_HEIGHT;
 
     private float currentPollen;
     private float currentEnergy;
+
+    private boolean onFlower;
+    private boolean inHive;
 
     private Vector2 force = new Vector2();
     private Vector2 vel = new Vector2();
@@ -55,6 +61,51 @@ public class BeeModel extends CapsuleObstacle {
         return goal;
     }
 
+    public boolean getOnFlower(){ return onFlower; }
+
+    public void setOnFlower(boolean b){
+        onFlower = b;
+    }
+
+    public float getPollen(){ return currentPollen; }
+
+    public float incrPollen(float x){
+        if(currentPollen+x>MAX_POLLEN){
+            currentPollen = MAX_POLLEN;
+            return currentPollen;
+        }else{
+            return currentPollen += x;
+        }
+    }
+
+    public float decrPollen(float x){
+        if(currentPollen-x>0){
+            return currentPollen -= x;
+        }else{
+            currentPollen = 0;
+            return -1;
+        }
+    }
+
+    public float getEnergy(){ return currentEnergy; }
+
+    public float incrEnergy(float x){
+        if(currentEnergy+x>MAX_ENERGY){
+            currentEnergy = MAX_ENERGY;
+            return currentEnergy;
+        }else{
+            return currentEnergy += x;
+        }
+    }
+
+    public float decrEnergy(float x){
+        if(currentEnergy-x>0){
+            return currentEnergy -= x;
+        }else{
+            currentEnergy = 0;
+            return -1;
+        }
+    }
     public void updatePath(HiveMind mind){
         goal = mind.getDecision(this);
     }
@@ -65,6 +116,12 @@ public class BeeModel extends CapsuleObstacle {
             //can flap
             force = brain.getDecision(this); //unit vector
             force = force.scl(BEE_THRUST);
+            if(onFlower){
+                if(currentEnergy>0){
+                    applyForce();
+                    decrEnergy(100);
+                }
+            }
             //applyForce();
             flap_cd = 0;
         }else{

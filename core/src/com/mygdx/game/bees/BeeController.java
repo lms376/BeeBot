@@ -95,14 +95,14 @@ public class BeeController extends WorldController implements ContactListener {
         obj1.setName("wall1");
         addObject(obj1);
 
-        FlowerModel flower = new FlowerModel(20,5, 2,0.25f);
+        FlowerModel flower = new FlowerModel(15,5, 2,0.25f);
         flower.setDrawScale(scale);
         addObject(flower);
 
         BeeModel bee;
         dwidth = beeTexture.getRegionWidth()/scale.x;
         dheight = beeTexture.getRegionHeight()/scale.y;
-        bee = new BeeModel(15,5,0.5f,0.25f);
+        bee = new BeeModel(15,10,0.5f,0.25f);
         bee.setDrawScale(scale);
         //bee.setTexture(beeTexture);
         addObject(bee);
@@ -114,16 +114,53 @@ public class BeeController extends WorldController implements ContactListener {
         //give all bees a goal path from mind ai, then let brain take actions
         testBee.updatePath(mind);
         testBee.updateFlaps(brain);
+        System.out.println(testBee.getEnergy());
+        if(testBee.getOnFlower()){
+            System.out.println(testBee.incrPollen(5));
+        }
     }
 
 
     public void beginContact(Contact contact) {//handle honey/nectar/pollination here
+        Fixture fixA = contact.getFixtureA();
+        Fixture fixB = contact.getFixtureB();
         Body body1 = contact.getFixtureA().getBody();
         Body body2 = contact.getFixtureB().getBody();
 
+        System.out.println(fixA.getUserData());
+        System.out.println(fixB.getUserData());
+
+        if((fixA.getUserData() == "feet" && fixB.getUserData() == "flower")){
+            System.out.println("ONFLOWER");
+            BeeModel bee = (BeeModel) body1.getUserData();
+            bee.setOnFlower(true);
+        }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "flower")){
+            System.out.println("ONFLOWER");
+            BeeModel bee = (BeeModel) body2.getUserData();
+            bee.setOnFlower(true);
+        }
+
     }
 
-    public void endContact(Contact contact) {}
+    public void endContact(Contact contact) {
+        Fixture fixA = contact.getFixtureA();
+        Fixture fixB = contact.getFixtureB();
+        Body body1 = contact.getFixtureA().getBody();
+        Body body2 = contact.getFixtureB().getBody();
+
+        System.out.println(fixA.getUserData());
+        System.out.println(fixB.getUserData());
+
+        if((fixA.getUserData() == "feet" && fixB.getUserData() == "flower")){
+            System.out.println("OFFFLOWER");
+            BeeModel bee = (BeeModel) body1.getUserData();
+            bee.setOnFlower(false);
+        }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "flower")){
+            System.out.println("OFFFLOWER");
+            BeeModel bee = (BeeModel) body2.getUserData();
+            bee.setOnFlower(false);
+        }
+    }
 
     @Override
     public void preSolve(Contact contact, Manifold oldManifold) {
