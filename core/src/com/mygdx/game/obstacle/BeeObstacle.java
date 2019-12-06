@@ -401,6 +401,7 @@ public class BeeObstacle extends SimpleObstacle {
 
         // Create the fixture
         fixture.shape = shape;
+        fixture.filter.groupIndex = -1;
         core = body.createFixture(fixture);
 
         fixture.density = fixture.density/2.0f;
@@ -460,6 +461,7 @@ public class BeeObstacle extends SimpleObstacle {
         feet.setAsBox(center.x*2f,.15f, new Vector2(0,-dimension.y/2 + seamEpsilon),0);
         fixture.shape = feet;
         fixture.isSensor = true;
+        fixture.filter.categoryBits = 0x0002;
         feetSense = body.createFixture(fixture);
         feetSense.setUserData("feet");
 

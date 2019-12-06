@@ -22,8 +22,8 @@ public class BeeModel extends BeeObstacle {
 
         BEE_WIDTH = width;
         BEE_HEIGHT = height;
-        currentEnergy = 1000;
-        currentPollen = 0;
+        currentEnergy = 0;
+        currentPollen = 200;
     }
 
     private static final float BEE_DENSITY  =  1.0f;
@@ -65,6 +65,11 @@ public class BeeModel extends BeeObstacle {
 
     public void setOnFlower(boolean b){
         onFlower = b;
+    }
+
+    public boolean getInHive() { return inHive; }
+    public void setInHive(boolean b) {
+        inHive = b;
     }
 
     public float getPollen(){ return currentPollen; }
