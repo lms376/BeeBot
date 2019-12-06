@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-import io.jenetics.internal.util.IntRef;
-
 import io.jenetics.AbstractAlterer;
 import io.jenetics.Chromosome;
 import io.jenetics.DoubleChromosome;
@@ -21,20 +19,9 @@ import io.jenetics.DoubleGene;
 import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
-import io.jenetics.Population;
-import io.jenetics.engine.Engine;
-import io.jenetics.engine.EvolutionResult;
 import io.jenetics.util.Factory;
 import io.jenetics.util.ISeq;
 import io.jenetics.util.RandomRegistry;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import static io.jenetics.internal.math.random.indexes;
-import static java.lang.Math.pow;
 
 public class BeeGenotype {
 
@@ -79,25 +66,24 @@ public class BeeGenotype {
         }
 
         @Override
-        public int alter(
-                final Population<G, C> population,
-                final long generation
-        ) {
+        public AltererResult<G, C> alter(Seq<Phenotype<G, C>> seq, long generation) {
             final double p = pow(_probability, 1.0/3.0);
             final IntRef alterations = new IntRef(0);
+            List<Phenotype<G, C>> mptList = seq.asList();
 
-            indexes(RandomRegistry.getRandom(), population.size(), p).forEach(i -> {
-                final Phenotype<G, C> pt = population.get(i);
+            indexes(RandomRegistry.getRandom(), seq.size(), p).forEach(i -> {
+                final Phenotype<G, C> pt = seq.get(i);
 
                 final Genotype<G> gt = pt.getGenotype();
                 final Genotype<G> mgt = mutate(gt, p, alterations);
 
-                final Phenotype<G, C> mpt = pt.newInstance(mgt, generation);
-                population.set(i, mpt);
+                final Phenotype<G, C> mpt = pt.of(mgt, generation);
+                mptList.set(i, mpt);
             });
-
-            return alterations.value;
+            ISeq<Phenotype<G, C>> result = ISeq.of(mptList);
+            return AltererResult.of(result, alterations.value);
         }
+
 
         private Genotype<G> mutate(
                 final Genotype<G> genotype,
@@ -150,6 +136,7 @@ public class BeeGenotype {
                     .peek(i -> genes.set(i, genes.get(i).newInstance()))
                     .count();
         }
+
 
     }
 
