@@ -16,6 +16,7 @@
  */
 package com.mygdx.game;
 
+import java.text.DecimalFormat;
 import java.util.Iterator;
 
 import com.badlogic.gdx.*;
@@ -78,6 +79,8 @@ public abstract class WorldController implements Screen {
 	protected TextureRegion goalTile;
 	/** The font for giving messages to the player */
 	protected BitmapFont displayFont;
+
+	public float time;
 
 	/**
 	 * Preloads the assets for this controller.
@@ -332,7 +335,7 @@ public abstract class WorldController implements Screen {
 	 *
 	 * The canvas is shared across all controllers
 	 *
-	 * @param the canvas associated with this controller
+	 * the canvas associated with this controller
 	 */
 	public GameCanvas getCanvas() {
 		return canvas;
@@ -344,7 +347,7 @@ public abstract class WorldController implements Screen {
 	 * The canvas is shared across all controllers.  Setting this value will compute
 	 * the drawing scale from the canvas size.
 	 *
-	 * @param value the canvas associated with this controller
+	 * @param canvas the canvas associated with this controller
 	 */
 	public void setCanvas(GameCanvas canvas) {
 		this.canvas = canvas;
@@ -473,7 +476,7 @@ public abstract class WorldController implements Screen {
 	 * to switch to a new game mode.  If not, the update proceeds
 	 * normally.
 	 *
-	 * @param delta Number of seconds since last animation frame
+	 * @param dt Number of seconds since last animation frame
 	 * 
 	 * @return whether to process the update loop
 	 */
@@ -525,7 +528,7 @@ public abstract class WorldController implements Screen {
 	 * This method is called after input is read, but before collisions are resolved.
 	 * The very last thing that it should do is apply forces to the appropriate objects.
 	 *
-	 * @param delta Number of seconds since last animation frame
+	 * @param dt Number of seconds since last animation frame
 	 */
 	public abstract void update(float dt);
 	
@@ -536,7 +539,7 @@ public abstract class WorldController implements Screen {
 	 * physics.  The primary method is the step() method in world.  This implementation
 	 * works for all applications and should not need to be overwritten.
 	 *
-	 * @param delta Number of seconds since last animation frame
+	 * @param dt Number of seconds since last animation frame
 	 */
 	public void postUpdate(float dt) {
 		// Add any objects created by actions
@@ -572,7 +575,7 @@ public abstract class WorldController implements Screen {
 	 *
 	 * The method draws all objects in the order that they were added.
 	 *
-	 * @param canvas The drawing context
+	 *
 	 */
 	public void draw(float delta) {
 		canvas.clear();
@@ -581,6 +584,11 @@ public abstract class WorldController implements Screen {
 		for(Obstacle obj : objects) {
 			obj.draw(canvas);
 		}
+
+		DecimalFormat format = new DecimalFormat("#.##");
+		String timeStr = format.format(time);
+		canvas.drawText(timeStr, new BitmapFont(), 20, 20);
+
 		canvas.end();
 		
 		if (debug) {
