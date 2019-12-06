@@ -34,6 +34,10 @@ public class HiveObstacle extends SimpleObstacle {
     /** Cache of the polygon vertices (for resizing) */
     private float[] vertices;
 
+
+    protected PolygonShape entrance = new PolygonShape();
+    private Fixture entranceSense;
+
     /**
      * Returns the dimensions of this box
      *
@@ -178,6 +182,14 @@ public class HiveObstacle extends SimpleObstacle {
         fixture.shape = shape;
         geometry = body.createFixture(fixture);
         geometry.setUserData("hive");
+
+        //top sensor
+        entrance.setAsBox(dimension.x,dimension.y, new Vector2(0,-dimension.y/2 + .01f),0);
+        fixture.shape = entrance;
+        fixture.isSensor = true;
+        entranceSense = body.createFixture(fixture);
+        entranceSense.setUserData("entrance");
+
         markDirty(false);
     }
 
@@ -204,6 +216,4 @@ public class HiveObstacle extends SimpleObstacle {
     public void drawDebug(GameCanvas canvas) {
         canvas.drawPhysics(shape,Color.YELLOW,getX(),getY(),getAngle(),drawScale.x,drawScale.y);
     }
-
-
 }
