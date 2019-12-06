@@ -40,6 +40,7 @@ public class BeeController extends WorldController implements ContactListener {
         world.setContactListener((ContactListener) this);
         brain = new BeeBrain();
         mind = new HiveMind();
+        time = 0;
     }
 
     public void preLoadContent(AssetManager manager) {
@@ -262,6 +263,8 @@ public class BeeController extends WorldController implements ContactListener {
                 bee.incrEnergy(5);
             }
         }
+
+        time += dt;
     }
 
 
