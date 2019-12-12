@@ -37,15 +37,15 @@ public class BeeGenotype {
     //(min, maxLength): Range of Genotype length/number of layers
     //(min, maxGenes): Range of DoubleChromosome length
     //(min, maxVal): Range of DoubleGene values
-    public BeeGenotype(int minLength, int maxLength, int minGenes, int maxGenes, double minVal, double maxVal, int in, int out){
-        this.minLength = minLength;
-        this.maxLength = maxLength;
-        this.minGenes = minGenes;
-        this.maxGenes = maxGenes;
-        this.minVal = minVal;
-        this.maxVal = maxVal;
-        this.inNum = in;
-        this.outNum = out;
+    public BeeGenotype(int _minLength, int _maxLength, int _minGenes, int _maxGenes, double _minVal, double _maxVal, int _in, int _out){
+        minLength = _minLength;
+        maxLength = _maxLength;
+        minGenes = _minGenes;
+        maxGenes = _maxGenes;
+        minVal = _minVal;
+        maxVal = _maxVal;
+        inNum = _in;
+        outNum = _out;
         final Random random = RandomRegistry.getRandom();
         randomLayers(random.nextInt(maxLength) + minLength);
     }
