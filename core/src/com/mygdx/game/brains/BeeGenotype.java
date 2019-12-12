@@ -1,9 +1,13 @@
 package com.mygdx.game.brains;
 
 import io.jenetics.*;
+import io.jenetics.engine.Engine;
+import io.jenetics.engine.EvolutionResult;
 import io.jenetics.internal.math.random;
 import io.jenetics.internal.util.IntRef;
 import io.jenetics.util.*;
+
+import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static io.jenetics.internal.math.random.indexes;
 
@@ -11,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
-
-import io.jenetics.internal.util.IntRef;
 
 import io.jenetics.AbstractAlterer;
 import io.jenetics.Chromosome;
@@ -21,54 +23,62 @@ import io.jenetics.DoubleGene;
 import io.jenetics.Gene;
 import io.jenetics.Genotype;
 import io.jenetics.Phenotype;
-import io.jenetics.Population;
-import io.jenetics.engine.Engine;
-import io.jenetics.engine.EvolutionResult;
 import io.jenetics.util.Factory;
 import io.jenetics.util.ISeq;
 import io.jenetics.util.RandomRegistry;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import static io.jenetics.internal.math.random.indexes;
-import static java.lang.Math.pow;
 
 public class BeeGenotype {
 
     private static int minLength, maxLength;
     private static double minVal, maxVal;
     private static int minGenes, maxGenes;
-
-    //(min, maxLength): Range of Genotype length
+    private static int[] layers;
+    private static int inNum, outNum;
+    //(min, maxLength): Range of Genotype length/number of layers
     //(min, maxGenes): Range of DoubleChromosome length
     //(min, maxVal): Range of DoubleGene values
-    public BeeGenotype(int minLength, int maxLength, int minGenes, int maxGenes, double minVal, double maxVal){
+    public BeeGenotype(int minLength, int maxLength, int minGenes, int maxGenes, double minVal, double maxVal, int in, int out){
         this.minLength = minLength;
         this.maxLength = maxLength;
         this.minGenes = minGenes;
         this.maxGenes = maxGenes;
         this.minVal = minVal;
         this.maxVal = maxVal;
+        this.inNum = in;
+        this.outNum = out;
+        final Random random = RandomRegistry.getRandom();
+        randomLayers(random.nextInt(maxLength) + minLength);
     }
 
-    private static final Factory<Genotype<DoubleGene>> ENCODING = () -> {
+    public static void randomLayers(int layerNum){
         final Random random = RandomRegistry.getRandom();
-        return Genotype.of(
-                // Vary the chromosome count between minLength and maxLength.
-                IntStream.range(0, random.nextInt(maxLength) + minLength)
-                        // Vary the chromosome length between minGenes and maxGenes number of DoubleGenes with values between minVal and maxVal.
-                        .mapToObj(i -> DoubleChromosome.of(minVal, maxVal, random.nextInt(maxGenes) + minGenes))
-                        .collect(ISeq.toISeq())
-        );
-    };
+        layers = new int[layerNum];
+        layers[0] = inNum;
+        layers[layerNum-1] = outNum;
+        int prevNum = inNum;
+        for(int i=1; i<layerNum-2;i++){
+            prevNum = random.nextInt(maxGenes/prevNum)+minGenes/prevNum;
+            layers[i] = prevNum;
+        }
+
+        int r1 = random.nextInt(Math.min(maxGenes/prevNum,maxGenes/outNum))+Math.max(minGenes/prevNum, minGenes/outNum);
+        layers[layerNum-2] = r1;
+    }
+
+    private static final Factory<Genotype<DoubleGene>> ENCODING = () -> Genotype.of(
+            // Vary the chromosome count between minLength and maxLength.
+            IntStream.range(0, layers.length-2)
+                    // Vary the chromosome length between minGenes and maxGenes number of DoubleGenes with values between minVal and maxVal.
+                    //.mapToObj(i -> DoubleChromosome.of(minVal, maxVal, random.nextInt(maxGenes) + minGenes))
+                    .mapToObj(i -> DoubleChromosome.of(minVal, maxVal, layers[i]*layers[i+1]))
+                    .collect(ISeq.toISeq())
+    );
 
     private static double fitness(final Genotype<DoubleGene> gt) {
-        // Calculate fitness from "dynamic" Genotype.
-        System.out.println("Gene count: " + gt.geneCount());
-        return 0;
+        // Change this
+        double score = new BeeBrain(gt).evaluate();
+        System.out.println("Score: " + score);
+        return score;
     }
 
     // The special mutator also variates the chromosome/genotype length.
@@ -79,31 +89,26 @@ public class BeeGenotype {
         }
 
         @Override
-        public int alter(
-                final Population<G, C> population,
-                final long generation
-        ) {
+        public AltererResult<G, C> alter(Seq<Phenotype<G, C>> seq, long generation) {
             final double p = pow(_probability, 1.0/3.0);
             final IntRef alterations = new IntRef(0);
+            List<Phenotype<G, C>> mptList = seq.asList();
 
-            indexes(RandomRegistry.getRandom(), population.size(), p).forEach(i -> {
-                final Phenotype<G, C> pt = population.get(i);
+            indexes(RandomRegistry.getRandom(), seq.size(), p).forEach(i -> {
+                final Phenotype<G, C> pt = seq.get(i);
 
                 final Genotype<G> gt = pt.getGenotype();
                 final Genotype<G> mgt = mutate(gt, p, alterations);
 
-                final Phenotype<G, C> mpt = pt.newInstance(mgt, generation);
-                population.set(i, mpt);
+                final Phenotype<G, C> mpt = pt.of(mgt, generation);
+                mptList.set(i, mpt);
             });
-
-            return alterations.value;
+            ISeq<Phenotype<G, C>> result = ISeq.of(mptList);
+            return AltererResult.of(result, alterations.value);
         }
 
-        private Genotype<G> mutate(
-                final Genotype<G> genotype,
-                final double p,
-                final IntRef alterations
-        ) {
+
+        private Genotype<G> mutate(final Genotype<G> genotype, final double p, final IntRef alterations) {
             final List<Chromosome<G>> chromosomes =
                     new ArrayList<>(genotype.toSeq().asList());
 
@@ -151,6 +156,20 @@ public class BeeGenotype {
                     .count();
         }
 
+
+    }
+
+    public static void evolve() {
+        final Engine<DoubleGene, Double> engine = Engine
+                .builder(BeeGenotype::fitness, ENCODING)
+                .alterers(new DynamicMutator<>(0.25))
+                .build();
+
+        final EvolutionResult<DoubleGene, Double> result = engine.stream()
+                .limit(20)
+                .collect(EvolutionResult.toBestEvolutionResult());
+
+        System.out.println(result.getBestFitness());
     }
 
 }
