@@ -85,8 +85,11 @@ public class BeeGenotype {
             nextNum = layers[length];
         }
 
-        //current 'weight layer' between prev and next layer => #weights = prevNum*nextNum
+        if(prevNum*nextNum == 0) {
+            System.out.println();
+        }
 
+        //current 'weight layer' between prev and next layer => #weights = prevNum*nextNum
         return DoubleChromosome.of(minVal, maxVal, prevNum*nextNum);
 
     }
