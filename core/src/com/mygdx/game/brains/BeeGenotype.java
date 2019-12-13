@@ -1,5 +1,6 @@
 package com.mygdx.game.brains;
 
+import com.mygdx.game.bees.BeeController;
 import io.jenetics.*;
 import io.jenetics.engine.Engine;
 import io.jenetics.engine.EvolutionResult;
@@ -34,6 +35,7 @@ public class BeeGenotype {
     private static int minGenes, maxGenes;
     private static int[] layers;
     private static int inNum, outNum;
+    private static BeeController beeController;
     //(min, maxLength): Range of Genotype length/number of layers
     //(min, maxGenes): Range of DoubleChromosome length
     //(min, maxVal): Range of DoubleGene values
@@ -46,6 +48,20 @@ public class BeeGenotype {
         maxVal = _maxVal;
         inNum = _in;
         outNum = _out;
+        final Random random = RandomRegistry.getRandom();
+        randomLayers(random.nextInt(maxLength) + minLength);
+    }
+
+    public static void set(BeeController controller, int _minLength, int _maxLength, int _minGenes, int _maxGenes, double _minVal, double _maxVal, int _in, int _out) {
+        minLength = _minLength;
+        maxLength = _maxLength;
+        minGenes = _minGenes;
+        maxGenes = _maxGenes;
+        minVal = _minVal;
+        maxVal = _maxVal;
+        inNum = _in;
+        outNum = _out;
+        beeController = controller;
         final Random random = RandomRegistry.getRandom();
         randomLayers(random.nextInt(maxLength) + minLength);
     }
@@ -76,7 +92,7 @@ public class BeeGenotype {
 
     private static double fitness(final Genotype<DoubleGene> gt) {
         // Change this
-        double score = new BeeBrain(gt).evaluate();
+        double score = beeController.evaluate(gt, layers);
         System.out.println("Score: " + score);
         return score;
     }
@@ -159,7 +175,7 @@ public class BeeGenotype {
 
     }
 
-    public static void evolve() {
+    public static void evolve(BeeController bc) {
         final Engine<DoubleGene, Double> engine = Engine
                 .builder(BeeGenotype::fitness, ENCODING)
                 .alterers(new DynamicMutator<>(0.25))

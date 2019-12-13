@@ -49,6 +49,8 @@ public class BeeModel extends BeeObstacle {
     private int flap_cd = 2;
     public Affine2 affineCache = new Affine2();
 
+    private boolean alive;
+
     public Vector2 getForce(){
         return force;
     }
@@ -61,13 +63,24 @@ public class BeeModel extends BeeObstacle {
         return goal;
     }
 
-    public boolean getOnFlower(){ return onFlower; }
+    public int getAlive() {
+        if(alive) return 1;
+        else return 0;
+    }
+
+    public int getOnFlower(){
+        if (onFlower) return 1;
+        else return 0;
+    }
 
     public void setOnFlower(boolean b){
         onFlower = b;
     }
 
-    public boolean getInHive() { return inHive; }
+    public int getInHive() {
+        if (inHive) return 1;
+        else return 0;
+    }
     public void setInHive(boolean b) {
         inHive = b;
     }
@@ -115,23 +128,13 @@ public class BeeModel extends BeeObstacle {
         goal = mind.getDecision(this);
     }
 
-    public void updateFlaps(BeeBrain brain){
-        //todo
-        if(flap_cd>8){
-            //can flap
-            force = brain.getDecision(this); //unit vector
-            force = force.scl(BEE_THRUST);
-            if(onFlower){
-                if(currentEnergy>0){
-                    applyForce();
-                    decrEnergy(100);
-                }
-            }
-            //applyForce();
-            flap_cd = 0;
-        }else{
-            flap_cd++;
-        }
+    public void updateFlaps(int i) {
+        float angle = (i - 1)*15;
+        Vector2 v = new Vector2();
+        v.setAngle(angle);
+        v.setLength(BEE_THRUST);
+        force = v;
+        applyForce();
     }
 
     public boolean activatePhysics(World world) {
