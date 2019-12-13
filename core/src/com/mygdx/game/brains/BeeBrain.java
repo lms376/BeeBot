@@ -19,12 +19,12 @@ public class BeeBrain {
     }
 
     public void createNN(int[] layers, double[] weights) {
-        network = new MultiLayerPerceptron();
+        network = new MultiLayerPerceptron(layers);
 
-        for (int i = 0; i < layers.length; i++) {
-            Layer layer = new Layer(layers[i]);
-            network.addLayer(layer);
-        }
+//        for (int i = 0; i < layers.length; i++) {
+//            Layer layer = new Layer(layers[i]);
+//            network.addLayer(layer);
+//        }
 
         network.setWeights(weights);
         network.setInputNeurons(network.getLayerAt(0).getNeurons());

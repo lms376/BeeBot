@@ -68,6 +68,7 @@ public class BeeGenotype {
     public static DoubleChromosome getChromosome(int length, int i){
         //length = #hidden layers + 1, total layers -1.
         final Random random = RandomRegistry.getRandom();
+        int maxNeurons = 256, minNeurons = 32;
         if(i==0){
             layers = new int[length+1];
             layers[0] = inNum;
@@ -75,18 +76,11 @@ public class BeeGenotype {
         }
         int prevNum = layers[i]; //neurons in prev layer
         int nextNum = 0;
-        if(i<length-2){
-            nextNum = random.nextInt(maxGenes/prevNum)+minGenes/prevNum; //rand num to produce weights btwn min and max genes
-            layers[i+1] = nextNum; //neurons in next layer
-        }else if(i==length-2){//2nd to last weight layer
-            nextNum = random.nextInt(Math.min(maxGenes/prevNum,maxGenes/outNum))+Math.max(minGenes/prevNum, minGenes/outNum);
+        if(i < length - 1) {
+            nextNum = random.nextInt(maxNeurons) + minNeurons;
             layers[i+1] = nextNum;
-        }else{//last weight layer
+        } else {
             nextNum = layers[length];
-        }
-
-        if(prevNum*nextNum == 0) {
-            System.out.println();
         }
 
         //current 'weight layer' between prev and next layer => #weights = prevNum*nextNum
