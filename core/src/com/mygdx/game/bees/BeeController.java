@@ -1,13 +1,10 @@
 package com.mygdx.game.bees;
 
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.mygdx.game.WorldController;
 import com.mygdx.game.brains.BeeBrain;
 import com.mygdx.game.brains.BeeGenotype;
@@ -18,7 +15,7 @@ import io.jenetics.DoubleGene;
 import io.jenetics.Genotype;
 import org.neuroph.nnet.MultiLayerPerceptron;
 
-import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 public class BeeController extends WorldController implements ContactListener {
 
@@ -34,6 +31,8 @@ public class BeeController extends WorldController implements ContactListener {
     private AssetState assetState = AssetState.EMPTY;
 
     private BeeModel[] bees;
+    private ArrayList<FlowerModel> flowers;
+    private ArrayList<Obstacle> obstacles;
     private BeeModel testBee;
     private BeeBrain brain;
     private HiveMind mind;
@@ -101,6 +100,7 @@ public class BeeController extends WorldController implements ContactListener {
         //create objects
         float dwidth;
         float dheight;
+        obstacles = new ArrayList<>();
 
         //ground
         BoxObstacle ground = new BoxObstacle(0,0,100,2);
@@ -112,11 +112,13 @@ public class BeeController extends WorldController implements ContactListener {
         //ground.setTexture(earthTile);
         ground.setName("ground");
         addObject(ground);
+        obstacles.add(ground);
 
         //hive
         HiveObstacle hive = new HiveModel(15, 3 + (100/scale.y), 200/scale.x, 200/scale.y);
         hive.setDrawScale(scale);
         addObject(hive);
+        obstacles.add(hive);
 
         //flowers
         generateFlowers(15);
@@ -129,10 +131,8 @@ public class BeeController extends WorldController implements ContactListener {
 //        BeeModel bee;
 //        dwidth = beeTexture.getRegionWidth()/scale.x;
 //        dheight = beeTexture.getRegionHeight()/scale.y;
-
         generateBees(3);
         testBee = bees[0];
-
 //        bee = new BeeModel(15,10,0.5f,0.25f);
 //        bee.setDrawScale(scale);
 //        //bee.setTexture(beeTexture);
@@ -165,6 +165,8 @@ public class BeeController extends WorldController implements ContactListener {
 
         int maxTotal = maxFlowers;
         if (maxFlowers > flowerAreaSize) maxTotal = (int) (flowerAreaSize);
+
+        flowers = new ArrayList<>();
 
         int maxSide = (int)(flowerAreaSize / 2);
 
@@ -212,6 +214,7 @@ public class BeeController extends WorldController implements ContactListener {
                 FlowerModel flower = new FlowerModel(loc + width/2,height, width, width/FLOWER_RATIO);
                 flower.setDrawScale(scale);
                 addObject(flower);
+                flowers.add(flower);
 
                 loc += width + generateGap(minGap, (leftEnd - leftBound - loc));
                 leftBound -= (width + minGap);
@@ -234,6 +237,7 @@ public class BeeController extends WorldController implements ContactListener {
                 FlowerModel flower = new FlowerModel(loc + width / 2, height, width, width/FLOWER_RATIO);
                 flower.setDrawScale(scale);
                 addObject(flower);
+                flowers.add(flower);
 
                 loc += width + generateGap(minGap, (screenSize - rightBound - loc));
                 rightBound -= (width + minGap);
@@ -270,7 +274,6 @@ public class BeeController extends WorldController implements ContactListener {
 
     @Override
     public void update(float dt) {
-
         if(nn == null){
             BeeGenotype.evolve(this);
         }
@@ -280,8 +283,9 @@ public class BeeController extends WorldController implements ContactListener {
         double[] out = nn.getOutput();
 
         //give all bees a goal path from mind ai, then let brain take actions
-        int i = 0;
-        for(BeeModel bee : bees) {
+            int i = 0;
+            for(BeeModel bee : bees) {
+                bee.setSensors(flowers, obstacles);
 
             i*=14; int maxI = 0; double max = 0;
             while (i < (i+1)*14) {
@@ -327,49 +331,35 @@ public class BeeController extends WorldController implements ContactListener {
             i++;
             inputs[i] = bee.getVY();
             i++;
-            //#region sensor
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            inputs[i] = 0; //sensor
-            i++;
-            //#endregion
+
+            inputs = addSensorInputs(i, inputs, bee);
+            i+= 16;
+
             Vector2 pos = bee.getPosition();
             inputs[i] = pos.x;
             i++;
             inputs[i] = pos.y;
             i++;
+
             inputs[i] = bee.getOnFlower();
             i++;
             inputs[i] = bee.getInHive();
             i++;
+        }
+
+        return inputs;
+    }
+
+    private double[] addSensorInputs(int i, double[] inputs, BeeModel bee) {
+        double[] flowerSensors = bee.getFlowerSensors(),
+                obstacleSensors = bee.getObstacleSensors();
+
+        for(int j = 0; j < 8; j++) {
+            inputs[i + j] = flowerSensors[j];
+        }
+
+        for(int j = 0; j < 8; j++) {
+            inputs[i + j + 8] = obstacleSensors[j];
         }
 
         return inputs;
