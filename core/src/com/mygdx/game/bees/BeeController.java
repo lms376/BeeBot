@@ -9,9 +9,16 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.mygdx.game.WorldController;
+import com.mygdx.game.brains.BeeBrain;
+import com.mygdx.game.brains.BeeGenotype;
 import com.mygdx.game.obstacle.BoxObstacle;
 import com.mygdx.game.obstacle.HiveObstacle;
 import com.mygdx.game.obstacle.Obstacle;
+import io.jenetics.DoubleGene;
+import io.jenetics.Genotype;
+import org.neuroph.nnet.MultiLayerPerceptron;
+
+import java.lang.reflect.Array;
 
 public class BeeController extends WorldController implements ContactListener {
 
@@ -30,6 +37,7 @@ public class BeeController extends WorldController implements ContactListener {
     private BeeModel testBee;
     private BeeBrain brain;
     private HiveMind mind;
+    private MultiLayerPerceptron nn;
 
     private static final float FLOWER_RATIO = 4/1;
 
@@ -38,7 +46,10 @@ public class BeeController extends WorldController implements ContactListener {
         setComplete(false);
         setFailure(false);
         world.setContactListener((ContactListener) this);
-        brain = new BeeBrain();
+        BeeGenotype.set(this, 4,8,32, 256, 0.0, 1.0, 252, 140);
+
+        //brain = new BeeBrain(gt, layers);
+
         mind = new HiveMind();
         time = 0;
     }
@@ -247,24 +258,121 @@ public class BeeController extends WorldController implements ContactListener {
     }
     //#endregion
 
+    public double evaluate(Genotype<DoubleGene> gt, int[] layers){
+        BeeBrain brain = new BeeBrain(gt, layers);
+
+        nn = brain.getNetwork();
+        reset();
+
+        //TODO: figure this out
+        return 0;
+    }
+
     @Override
     public void update(float dt) {
+
+        if(nn == null){
+            BeeGenotype.evolve(this);
+        }
+
+        double[] inputs = createInputs();
+        nn.setInput(inputs);
+        double[] out = nn.getOutput();
+
         //give all bees a goal path from mind ai, then let brain take actions
+        int i = 0;
         for(BeeModel bee : bees) {
-            bee.updatePath(mind);
-            bee.updateFlaps(brain);
-            //System.out.println(testBee.getEnergy());
-            if(bee.getOnFlower()){
-                //System.out.println(testBee.incrPollen(5));
+
+            i*=14; int maxI = 0; double max = 0;
+            while (i < (i+1)*14) {
+
+                if (out[i] > max) {
+                    maxI = i;
+                    max = out[i];
+                }
+
+                i++;
+            }
+
+            int j = maxI % 14;
+            if (j > 0) bee.updateFlaps(j);
+
+            if(bee.getOnFlower() == 1){
                 bee.incrPollen(5);
             }
-            if (bee.getInHive()) {
+            if (bee.getInHive() == 1) {
                 bee.decrPollen(5);
                 bee.incrEnergy(5);
             }
         }
 
         time += dt;
+    }
+
+    public double[] createInputs() {
+        double[] inputs = new double[252];
+
+        inputs[0] = 0; //hive honey
+        inputs[1] = 0; //hive position
+
+        int i = 2;
+        for(BeeModel bee : bees) {
+            inputs[i] = bee.getAlive();
+            i++;
+            inputs[i] = bee.getEnergy();
+            i++;
+            inputs[i] = bee.getPollen();
+            i++;
+            inputs[i] = bee.getVX();
+            i++;
+            inputs[i] = bee.getVY();
+            i++;
+            //#region sensor
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            inputs[i] = 0; //sensor
+            i++;
+            //#endregion
+            Vector2 pos = bee.getPosition();
+            inputs[i] = pos.x;
+            i++;
+            inputs[i] = pos.y;
+            i++;
+            inputs[i] = bee.getOnFlower();
+            i++;
+            inputs[i] = bee.getInHive();
+            i++;
+        }
+
+        return inputs;
     }
 
 
