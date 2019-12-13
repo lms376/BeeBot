@@ -1,29 +1,29 @@
 package com.mygdx.game.bees;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Affine2;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.mygdx.game.GameCanvas;
 import com.mygdx.game.obstacle.BeeObstacle;
-import com.mygdx.game.obstacle.CapsuleObstacle;
+import com.mygdx.game.obstacle.Obstacle;
+
+import java.util.ArrayList;
 
 public class BeeModel extends BeeObstacle {
 
-
     public BeeModel(float x, float y, float width, float height) {
-
         super(x, y, width, height);
 
         BEE_WIDTH = width;
         BEE_HEIGHT = height;
         currentEnergy = 0;
         currentPollen = 200;
+
+        flowerSensors = new double[8];
+        obstacleSensors = new double[8];
     }
 
     private static final float BEE_DENSITY  =  1.0f;
@@ -42,6 +42,9 @@ public class BeeModel extends BeeObstacle {
 
     private boolean onFlower;
     private boolean inHive;
+
+    private double[] flowerSensors;
+    private double[] obstacleSensors;
 
     private Vector2 force = new Vector2();
     private Vector2 vel = new Vector2();
@@ -127,6 +130,42 @@ public class BeeModel extends BeeObstacle {
     public void updatePath(HiveMind mind){
         goal = mind.getDecision(this);
     }
+
+    public void setSensors(ArrayList<FlowerModel> flowers, ArrayList<Obstacle> obstacles) {
+        setFlowerSensors(flowers);
+        setObstacleSensors(obstacles);
+    }
+
+    public double[] getFlowerSensors() { return flowerSensors; }
+    public void setFlowerSensors(ArrayList<FlowerModel> flowers) {
+        Vector2 pos = getPosition();
+
+        for(FlowerModel flower : flowers) {
+            Vector2 flowerPos = flower.getPosition();
+            Vector2 distance = pos.cpy().sub(flowerPos);
+
+            double score = 1 / Math.abs(distance.len()),
+                    angle = distance.angle();
+
+            flowerSensors[(int)(angle / 45)] += score;
+        }
+    }
+
+    public double[] getObstacleSensors() { return obstacleSensors; }
+    public void setObstacleSensors(ArrayList<Obstacle> obstacles) {
+        Vector2 pos = getPosition();
+
+        for(Obstacle obstacle : obstacles) {
+            Vector2 obstaclePos = obstacle.getPosition();
+            Vector2 distance = pos.cpy().sub(obstaclePos);
+
+            double score = Math.pow(distance.len(), 2),
+                    angle = distance.angle();
+
+            obstacleSensors[(int)(angle / 45)] += score;
+        }
+    }
+
 
     public void updateFlaps(int i) {
         float angle = (i - 1)*15;
