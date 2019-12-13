@@ -63,6 +63,7 @@ public class GDXRoot extends Game implements ScreenListener {
 	 * the asynchronous loader for all other assets.
 	 */
 	public void create() {
+		//TODO: loop through for each genotype in generation
 		canvas  = new GameCanvas();
 		loading = new LoadingMode(canvas,manager,1);
 		
@@ -127,6 +128,7 @@ public class GDXRoot extends Game implements ScreenListener {
 			loading = null;
 		} else if (exitCode == WorldController.EXIT_QUIT) {
 			// We quit the main application
+			//TODO: instead of exiting, return score for genotype
 			Gdx.app.exit();
 		}
 	}

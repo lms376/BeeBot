@@ -49,7 +49,6 @@ public class BeeGenotype {
         inNum = _in;
         outNum = _out;
         final Random random = RandomRegistry.getRandom();
-        randomLayers(random.nextInt(maxLength) + minLength);
     }
 
     public static void set(BeeController controller, int _minLength, int _maxLength, int _minGenes, int _maxGenes, double _minVal, double _maxVal, int _in, int _out) {
@@ -63,32 +62,64 @@ public class BeeGenotype {
         outNum = _out;
         beeController = controller;
         final Random random = RandomRegistry.getRandom();
-        randomLayers(random.nextInt(maxLength) + minLength);
     }
 
-    public static void randomLayers(int layerNum){
+
+    public static DoubleChromosome getChromosome(int length, int i){
+        //length = #hidden layers + 1, total layers -1.
         final Random random = RandomRegistry.getRandom();
-        layers = new int[layerNum];
-        layers[0] = inNum;
-        layers[layerNum-1] = outNum;
-        int prevNum = inNum;
-        for(int i=1; i<layerNum-2;i++){
-            prevNum = random.nextInt(maxGenes/prevNum)+minGenes/prevNum;
-            layers[i] = prevNum;
+        if(i==0){
+            layers = new int[length+1];
+            layers[0] = inNum;
+            layers[length] = outNum;
+        }
+        int prevNum = layers[i]; //neurons in prev layer
+        int nextNum = 0;
+        if(i<length-2){
+            nextNum = random.nextInt(maxGenes/prevNum)+minGenes/prevNum; //rand num to produce weights btwn min and max genes
+            layers[i+1] = nextNum; //neurons in next layer
+        }else if(i==length-2){//2nd to last weight layer
+            nextNum = random.nextInt(Math.min(maxGenes/prevNum,maxGenes/outNum))+Math.max(minGenes/prevNum, minGenes/outNum);
+            layers[i+1] = nextNum;
+        }else{//last weight layer
+            nextNum = layers[length];
         }
 
-        int r1 = random.nextInt(Math.min(maxGenes/prevNum,maxGenes/outNum))+Math.max(minGenes/prevNum, minGenes/outNum);
-        layers[layerNum-2] = r1;
+        //current 'weight layer' between prev and next layer => #weights = prevNum*nextNum
+
+        return DoubleChromosome.of(minVal, maxVal, prevNum*nextNum);
+
     }
 
-    private static final Factory<Genotype<DoubleGene>> ENCODING = () -> Genotype.of(
-            // Vary the chromosome count between minLength and maxLength.
-            IntStream.range(0, layers.length-2)
-                    // Vary the chromosome length between minGenes and maxGenes number of DoubleGenes with values between minVal and maxVal.
-                    //.mapToObj(i -> DoubleChromosome.of(minVal, maxVal, random.nextInt(maxGenes) + minGenes))
-                    .mapToObj(i -> DoubleChromosome.of(minVal, maxVal, layers[i]*layers[i+1]))
-                    .collect(ISeq.toISeq())
-    );
+    public static Genotype<DoubleGene> getGenotype(int length){
+        //length = #chromosomes -> number of weight layers, or #hidden layers+1
+        Genotype<DoubleGene> gt = Genotype.of(
+                IntStream.range(0, length)
+                        .mapToObj(i -> getChromosome(length, i))
+                        .collect(ISeq.toISeq())
+        );
+
+        return gt;
+    }
+
+    private static final Factory<Genotype<DoubleGene>> ENCODING = () -> {
+        final Random random = RandomRegistry.getRandom();
+        return getGenotype(random.nextInt(maxLength)+minLength);
+    };
+
+    private static final Factory<Genotype<DoubleGene>> ENCODING_OLD = () -> {
+        final Random random = RandomRegistry.getRandom();
+        int length = random.nextInt(maxLength)+minLength;
+        return Genotype.of(
+                // Vary the chromosome count between 10 and 20.
+                IntStream.range(0, length)
+                        // Vary the chromosome length between 10 and 20.
+                        .mapToObj(i -> getChromosome(length, i))
+                        .collect(ISeq.toISeq())
+
+        );
+
+    };
 
     private static double fitness(final Genotype<DoubleGene> gt) {
         // Change this
