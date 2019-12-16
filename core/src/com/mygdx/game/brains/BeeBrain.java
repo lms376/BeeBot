@@ -8,18 +8,20 @@ import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.LearningRule;
 import org.neuroph.nnet.MultiLayerPerceptron;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class BeeBrain {
 
     MultiLayerPerceptron network;
+    private double score;
 
     public BeeBrain(Genotype<DoubleGene> gt, int[] layers){
         int len = gt.length();
         int[] layerList = new int[len];
         int[] neuronList = new int[len+1];
-        neuronList[0] = inNum;
-        neuronList[len] = outNum;
+        neuronList[0] = 512;
+        neuronList[len] = 256;
         Iterator<Chromosome<DoubleGene>> gtIter = gt.iterator();
         int i = 0;
         while(gtIter.hasNext()){
@@ -29,14 +31,18 @@ public class BeeBrain {
         createNN(layers, getWeights(gt));
     }
 
-    public void createNN(int[] layers, double[] weights) {
-        System.out.println(weights.length);
-        network = new MultiLayerPerceptron();
+    public void giveScore(double score) {
+        this.score = score;
+    }
 
-        for (int i = 0; i < layers.length; i++) {
-            Layer layer = new Layer(layers[i]);
-            network.addLayer(layer);
-        }
+    public double getScore() { return score; }
+
+    public void createNN(int[] layers, double[] weights) {
+        network = new MultiLayerPerceptron(layers);
+
+        //todo: fix weights
+        weights = new double[network.getWeights().length];
+        Arrays.fill(weights, 1);
 
         network.setWeights(weights);
         network.setInputNeurons(network.getLayerAt(0).getNeurons());

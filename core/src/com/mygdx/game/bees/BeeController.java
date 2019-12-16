@@ -40,13 +40,14 @@ public class BeeController extends WorldController implements ContactListener {
 
     private static final float FLOWER_RATIO = 4/1;
 
+    private double score;
+
     public BeeController(){
         setDebug(false);
         setComplete(false);
         setFailure(false);
         world.setContactListener((ContactListener) this);
-        BeeGenotype.set(this, 4,8,32, 256, 0.0, 1.0, 252, 140);
-
+        //BeeGenotype.set(this, 4,8,32, 256, 0.0, 1.0, 252, 140);
         //brain = new BeeBrain(gt, layers);
 
         mind = new HiveMind();
@@ -262,6 +263,10 @@ public class BeeController extends WorldController implements ContactListener {
     }
     //#endregion
 
+    public double getScore() {
+        return score;
+    }
+
     public double evaluate(Genotype<DoubleGene> gt, int[] layers){
         BeeBrain brain = new BeeBrain(gt, layers);
 
@@ -274,10 +279,6 @@ public class BeeController extends WorldController implements ContactListener {
 
     @Override
     public void update(float dt) {
-        if(nn == null){
-            BeeGenotype.evolve(this);
-        }
-
         double[] inputs = createInputs();
         nn.setInput(inputs);
         double[] out = nn.getOutput();
@@ -372,25 +373,18 @@ public class BeeController extends WorldController implements ContactListener {
         Body body1 = contact.getFixtureA().getBody();
         Body body2 = contact.getFixtureB().getBody();
 
-        System.out.println(fixA.getUserData());
-        System.out.println(fixB.getUserData());
-
         if((fixA.getUserData() == "feet" && fixB.getUserData() == "flower")){
-            System.out.println("ONFLOWER");
             BeeModel bee = (BeeModel) body1.getUserData();
             bee.setOnFlower(true);
         }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "flower")){
-            System.out.println("ONFLOWER");
             BeeModel bee = (BeeModel) body2.getUserData();
             bee.setOnFlower(true);
         }
 
         if((fixA.getUserData() == "feet" && fixB.getUserData() == "hive")){
-            System.out.println("ONHIVE");
             BeeModel bee = (BeeModel) body1.getUserData();
             bee.setInHive(true);
         }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "hive")){
-            System.out.println("ONHIVE");
             BeeModel bee = (BeeModel) body2.getUserData();
             bee.setInHive(true);
         }
@@ -403,15 +397,10 @@ public class BeeController extends WorldController implements ContactListener {
         Body body1 = contact.getFixtureA().getBody();
         Body body2 = contact.getFixtureB().getBody();
 
-        System.out.println(fixA.getUserData());
-        System.out.println(fixB.getUserData());
-
         if((fixA.getUserData() == "feet" && fixB.getUserData() == "flower")){
-            System.out.println("OFFFLOWER");
             BeeModel bee = (BeeModel) body1.getUserData();
             bee.setOnFlower(false);
         }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "flower")){
-            System.out.println("OFFFLOWER");
             BeeModel bee = (BeeModel) body2.getUserData();
             bee.setOnFlower(false);
         }
