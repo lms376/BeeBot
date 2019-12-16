@@ -15,10 +15,22 @@ public class BeeBrain {
     MultiLayerPerceptron network;
 
     public BeeBrain(Genotype<DoubleGene> gt, int[] layers){
+        int len = gt.length();
+        int[] layerList = new int[len];
+        int[] neuronList = new int[len+1];
+        neuronList[0] = inNum;
+        neuronList[len] = outNum;
+        Iterator<Chromosome<DoubleGene>> gtIter = gt.iterator();
+        int i = 0;
+        while(gtIter.hasNext()){
+            int genes = gtIter.next().length();
+
+        }
         createNN(layers, getWeights(gt));
     }
 
     public void createNN(int[] layers, double[] weights) {
+        System.out.println(weights.length);
         network = new MultiLayerPerceptron();
 
         for (int i = 0; i < layers.length; i++) {

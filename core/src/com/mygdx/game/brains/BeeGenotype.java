@@ -65,97 +65,93 @@ public class BeeGenotype {
     }
 
 
-    public static DoubleChromosome getChromosome(int length, int i){
+    public static DoubleChromosome getChromosome(int length, int[] l, int i){
         //length = #hidden layers + 1, total layers -1.
         final Random random = RandomRegistry.getRandom();
-        if(i==0){
-            layers = new int[length+1];
-            layers[0] = inNum;
-            layers[length] = outNum;
+        int maxNeurons = 256, minNeurons = 32;
+        if(i==0){//this class is static so using the same layers arr for every gt may cause errors - fixed
+            //layers = new int[length+1];
+            l[0] = inNum;
+            l[length] = outNum;
         }
-        int prevNum = layers[i]; //neurons in prev layer
+        int prevNum = l[i]; //neurons in prev layer
         int nextNum = 0;
-        if(i<length-2){
-            nextNum = random.nextInt(maxGenes/prevNum)+minGenes/prevNum; //rand num to produce weights btwn min and max genes
-            layers[i+1] = nextNum; //neurons in next layer
-        }else if(i==length-2){//2nd to last weight layer
-            nextNum = random.nextInt(Math.min(maxGenes/prevNum,maxGenes/outNum))+Math.max(minGenes/prevNum, minGenes/outNum);
-            layers[i+1] = nextNum;
-        }else{//last weight layer
-            nextNum = layers[length];
+        if(i < length - 1) {
+            nextNum = random.nextInt(maxNeurons) + minNeurons;
+            l[i+1] = nextNum;
+        } else {
+            nextNum = l[length];
         }
 
         //current 'weight layer' between prev and next layer => #weights = prevNum*nextNum
-
         return DoubleChromosome.of(minVal, maxVal, prevNum*nextNum);
 
     }
 
     public static Genotype<DoubleGene> getGenotype(int length){
+        int[] layerList = new int[length+1];
         //length = #chromosomes -> number of weight layers, or #hidden layers+1
         Genotype<DoubleGene> gt = Genotype.of(
                 IntStream.range(0, length)
-                        .mapToObj(i -> getChromosome(length, i))
+                        .mapToObj(i -> getChromosome(length, layerList, i))
                         .collect(ISeq.toISeq())
         );
 
+        layers = layerList;
         return gt;
     }
+
 
     private static final Factory<Genotype<DoubleGene>> ENCODING = () -> {
         final Random random = RandomRegistry.getRandom();
         return getGenotype(random.nextInt(maxLength)+minLength);
     };
 
-    private static final Factory<Genotype<DoubleGene>> ENCODING_OLD = () -> {
-        final Random random = RandomRegistry.getRandom();
-        int length = random.nextInt(maxLength)+minLength;
-        return Genotype.of(
-                // Vary the chromosome count between 10 and 20.
-                IntStream.range(0, length)
-                        // Vary the chromosome length between 10 and 20.
-                        .mapToObj(i -> getChromosome(length, i))
-                        .collect(ISeq.toISeq())
-
-        );
-
-    };
-
     private static double fitness(final Genotype<DoubleGene> gt) {
         // Change this
-        double score = beeController.evaluate(gt, layers);
+        double score = beeController.evaluate(gt, layers); //cannot pass in layers - static list same for all gt's
         System.out.println("Score: " + score);
         return score;
     }
 
     // The special mutator also variates the chromosome/genotype length.
-    private static final class DynamicMutator<G extends Gene<?, G>, C extends Comparable<? super C>> extends AbstractAlterer<G, C>
+    private static final class DynamicMutator<
+            G extends Gene<?, G>,
+            C extends Comparable<? super C>
+            >
+            extends AbstractAlterer<G, C>
     {
-        public DynamicMutator(double probability) {
+        DynamicMutator(double probability) {
             super(probability);
         }
 
         @Override
-        public AltererResult<G, C> alter(Seq<Phenotype<G, C>> seq, long generation) {
+        public AltererResult<G, C> alter(
+                final Seq<Phenotype<G, C>> population,
+                final long generation
+        ) {
             final double p = pow(_probability, 1.0/3.0);
             final IntRef alterations = new IntRef(0);
-            List<Phenotype<G, C>> mptList = seq.asList();
+            final MSeq<Phenotype<G, C>> pop = MSeq.of(population);
 
-            indexes(RandomRegistry.getRandom(), seq.size(), p).forEach(i -> {
-                final Phenotype<G, C> pt = seq.get(i);
+            indexes(RandomRegistry.getRandom(), pop.size(), p).forEach(i -> {
+                final Phenotype<G, C> pt = pop.get(i);
 
                 final Genotype<G> gt = pt.getGenotype();
                 final Genotype<G> mgt = mutate(gt, p, alterations);
 
-                final Phenotype<G, C> mpt = pt.of(mgt, generation);
-                mptList.set(i, mpt);
+                final Phenotype<G, C> mpt = Phenotype.of(mgt, generation);
+                pop.set(i, mpt);
             });
-            ISeq<Phenotype<G, C>> result = ISeq.of(mptList);
-            return AltererResult.of(result, alterations.value);
+
+            return AltererResult.of(pop.toISeq(), alterations.value);
         }
 
-
-        private Genotype<G> mutate(final Genotype<G> genotype, final double p, final IntRef alterations) {
+        private Genotype<G> mutate(
+                final Genotype<G> genotype,
+                final double p,
+                final IntRef alterations
+        ) {
             final List<Chromosome<G>> chromosomes =
                     new ArrayList<>(genotype.toSeq().asList());
 
@@ -189,21 +185,10 @@ public class BeeGenotype {
 
         private int mutate(final List<G> genes, final double p) {
             final Random random = RandomRegistry.getRandom();
-
-            // Add/remove Gene from chromosome.
-            final double rd = random.nextDouble();
-            if (rd < 1/3.0) {
-                genes.remove(0);
-            } else if (rd < 2/3.0) {
-                genes.add(genes.get(0).newInstance());
-            }
-
             return (int)indexes(random, genes.size(), p)
                     .peek(i -> genes.set(i, genes.get(i).newInstance()))
                     .count();
         }
-
-
     }
 
     public static void evolve(BeeController bc) {
