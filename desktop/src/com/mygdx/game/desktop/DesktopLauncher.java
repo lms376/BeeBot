@@ -17,17 +17,18 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 import static io.jenetics.internal.math.random.indexes;
+import static java.lang.Math.min;
 import static java.lang.Math.pow;
 
 public class DesktopLauncher {
     public static void main (String[] arg) {
-
+        set(4,8,32, 256, 0.0, 1.0, 252, 140);
         evolve();
-
     }
 
     static void run(BeeBrain bb) {
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+        LwjglApplicationConfiguration.disableAudio = true;
         config.title = "BeeGame";
         config.width  = 1600;
         config.height = 900;
@@ -41,9 +42,8 @@ public class DesktopLauncher {
     private static int minGenes, maxGenes;
     private static int[] layers;
     private static int inNum, outNum;
-    private static BeeController beeController;
 
-    public static void set(BeeController controller, int _minLength, int _maxLength, int _minGenes, int _maxGenes, double _minVal, double _maxVal, int _in, int _out) {
+    public static void set(int _minLength, int _maxLength, int _minGenes, int _maxGenes, double _minVal, double _maxVal, int _in, int _out) {
         minLength = _minLength;
         maxLength = _maxLength;
         minGenes = _minGenes;
@@ -52,35 +52,32 @@ public class DesktopLauncher {
         maxVal = _maxVal;
         inNum = _in;
         outNum = _out;
-        beeController = controller;
-        final Random random = RandomRegistry.getRandom();
     }
 
-
-    public static DoubleChromosome getChromosome(int length, int[] l, int i){
+    private static DoubleChromosome getChromosome(int length, int[] l, int i){
         //length = #hidden layers + 1, total layers -1.
         final Random random = RandomRegistry.getRandom();
-        int maxNeurons = 256, minNeurons = 32;
         if(i==0){//this class is static so using the same layers arr for every gt may cause errors - fixed
-            //layers = new int[length+1];
             l[0] = inNum;
             l[length] = outNum;
         }
         int prevNum = l[i]; //neurons in prev layer
         int nextNum = 0;
         if(i < length - 1) {
-            nextNum = random.nextInt(maxNeurons) + minNeurons;
+            nextNum = random.nextInt(maxGenes) + minGenes;
             l[i+1] = nextNum;
         } else {
             nextNum = l[length];
         }
 
         //current 'weight layer' between prev and next layer => #weights = prevNum*nextNum
-        return DoubleChromosome.of(minVal, maxVal, prevNum*nextNum);
+        int chromLen = prevNum*nextNum;
+        if (i > 0) chromLen += nextNum;
+        return DoubleChromosome.of(minVal, maxVal, chromLen);
 
     }
 
-    public static Genotype<DoubleGene> getGenotype(int length){
+    private static Genotype<DoubleGene> getGenotype(int length){
         int[] layerList = new int[length+1];
         //length = #chromosomes -> number of weight layers, or #hidden layers+1
         Genotype<DoubleGene> gt = Genotype.of(
@@ -195,7 +192,7 @@ public class DesktopLauncher {
                 .limit(20)
                 .collect(EvolutionResult.toBestEvolutionResult());
 
-        System.out.println(result.getBestFitness());
+        System.out.println("Fitness: " + result.getBestFitness());
     }
     //#endregion
 }
