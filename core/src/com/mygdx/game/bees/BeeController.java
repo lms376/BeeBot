@@ -40,6 +40,8 @@ public class BeeController extends WorldController implements ContactListener {
 
     private static final float FLOWER_RATIO = 4/1;
 
+    private double score;
+
     public BeeController(){
         setDebug(false);
         setComplete(false);
@@ -261,6 +263,10 @@ public class BeeController extends WorldController implements ContactListener {
         return gap;
     }
     //#endregion
+
+    public double getScore() {
+        return score;
+    }
 
     public double evaluate(Genotype<DoubleGene> gt, int[] layers){
         BeeBrain brain = new BeeBrain(gt, layers);

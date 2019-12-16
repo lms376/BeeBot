@@ -20,7 +20,10 @@ import com.badlogic.gdx.assets.loaders.*;
 import com.badlogic.gdx.assets.loaders.resolvers.*;
 
 import com.mygdx.game.bees.BeeController;
+import com.mygdx.game.brains.BeeBrain;
 import com.mygdx.game.util.ScreenListener;
+
+import javax.swing.*;
 
 /**
  * Root class for a LibGDX.  
@@ -42,6 +45,8 @@ public class GDXRoot extends Game implements ScreenListener {
 	private int current;
 	/** List of all WorldControllers */
 	private WorldController controller;
+
+	private BeeBrain brain;
 	
 	/**
 	 * Creates a new game from the configuration settings.
@@ -49,10 +54,10 @@ public class GDXRoot extends Game implements ScreenListener {
 	 * This method configures the asset manager, but does not load any assets
 	 * or assign any screen.
 	 */
-	public GDXRoot() {
+	public GDXRoot(BeeBrain brain) {
 		// Start loading with the asset manager
 		manager = new AssetManager();
-		
+		this.brain = brain;
 		// Add font support to the asset manager
 	}
 
@@ -81,6 +86,8 @@ public class GDXRoot extends Game implements ScreenListener {
 	 * This is preceded by a call to pause().
 	 */
 	public void dispose() {
+		brain.giveScore(((BeeController)controller).getScore());
+
 		// Call dispose on our children
 		setScreen(null);
 		controller.dispose();

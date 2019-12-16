@@ -13,6 +13,7 @@ import java.util.Iterator;
 public class BeeBrain {
 
     MultiLayerPerceptron network;
+    private double score;
 
     public BeeBrain(Genotype<DoubleGene> gt, int[] layers){
         int len = gt.length();
@@ -28,6 +29,12 @@ public class BeeBrain {
         }
         createNN(layers, getWeights(gt));
     }
+
+    public void giveScore(double score) {
+        this.score = score;
+    }
+
+    public double getScore() { return score; }
 
     public void createNN(int[] layers, double[] weights) {
         System.out.println(weights.length);
