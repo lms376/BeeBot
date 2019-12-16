@@ -27,7 +27,7 @@ import io.jenetics.Phenotype;
 import io.jenetics.util.Factory;
 import io.jenetics.util.ISeq;
 import io.jenetics.util.RandomRegistry;
-
+@Deprecated
 public class BeeGenotype {
 
     private static int minLength, maxLength;

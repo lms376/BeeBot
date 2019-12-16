@@ -47,7 +47,7 @@ public class BeeController extends WorldController implements ContactListener {
         setComplete(false);
         setFailure(false);
         world.setContactListener((ContactListener) this);
-        BeeGenotype.set(this, 4,8,32, 256, 0.0, 1.0, 252, 140);
+        //BeeGenotype.set(this, 4,8,32, 256, 0.0, 1.0, 252, 140);
 
         //brain = new BeeBrain(gt, layers);
 
@@ -280,10 +280,6 @@ public class BeeController extends WorldController implements ContactListener {
 
     @Override
     public void update(float dt) {
-        if(nn == null){
-            BeeGenotype.evolve(this);
-        }
-
         double[] inputs = createInputs();
         nn.setInput(inputs);
         double[] out = nn.getOutput();

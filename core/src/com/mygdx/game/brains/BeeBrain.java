@@ -19,8 +19,8 @@ public class BeeBrain {
         int len = gt.length();
         int[] layerList = new int[len];
         int[] neuronList = new int[len+1];
-        neuronList[0] = inNum;
-        neuronList[len] = outNum;
+        neuronList[0] = 512;
+        neuronList[len] = 256;
         Iterator<Chromosome<DoubleGene>> gtIter = gt.iterator();
         int i = 0;
         while(gtIter.hasNext()){
