@@ -80,17 +80,15 @@ public class GDXRoot extends Game implements ScreenListener {
 		this.brains = brains;
 		isRunning = true;
 		isLoading = true;
-		resetting = false;
+		resetting = true;
 
 		if(controller != null) {
-			controller.pause();
-			controller.reset();
 			((BeeController) controller).giveBrains(brains);
-			controller.resume();
 		} else {
 			controller =  new BeeController();
 			((BeeController)controller).giveBrains(brains);
 		}
+		resetting = false;
 	}
 
 	public void reset(BeeBrain[] brains) {
@@ -126,6 +124,8 @@ public class GDXRoot extends Game implements ScreenListener {
 		}
 		return scores;
 	}
+
+	public double secondsElapsed() { return controller.time; }
 
 	public void reset() {
 		controller.pause();
