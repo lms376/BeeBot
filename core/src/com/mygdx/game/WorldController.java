@@ -468,6 +468,10 @@ public abstract class WorldController implements Screen {
 	 * This method disposes of the world and creates a new one.
 	 */
 	public abstract void reset();
+
+	public boolean isUpdating;
+	public boolean isUpdating(){ return isUpdating; }
+	public void setUpdating(boolean val){ isUpdating = val; }
 	
 	/**
 	 * Returns whether to process the update loop
@@ -481,6 +485,7 @@ public abstract class WorldController implements Screen {
 	 * @return whether to process the update loop
 	 */
 	public boolean preUpdate(float dt) {
+		setUpdating(true);
 		InputController input = InputController.getInstance();
 		input.readInput(bounds, scale);
 		if (listener == null) {
@@ -565,6 +570,7 @@ public abstract class WorldController implements Screen {
 				obj.update(dt);
 			}
 		}
+		setUpdating(false);
 	}
 	
 	/**

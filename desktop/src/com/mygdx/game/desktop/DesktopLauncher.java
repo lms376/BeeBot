@@ -278,7 +278,7 @@ class Evolver {
                 GDXRoot root = (GDXRoot)app.getApplicationListener();
                 while(root == null) {
                     System.out.print("no root...");
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                     root = (GDXRoot)app.getApplicationListener();
                 }
 
@@ -288,7 +288,7 @@ class Evolver {
                     System.out.print("loading");
                     while (root.isLoading()) {
                         System.out.print("...");
-                        Thread.sleep(500);
+                        Thread.sleep(10);
                     }
                     System.out.println();
                 }
@@ -297,7 +297,7 @@ class Evolver {
                 System.out.print("running");
                 while(root.isRunning()) {
                     System.out.print("...");
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 }
                 System.out.println();
 
@@ -306,10 +306,17 @@ class Evolver {
                 System.out.println("\n" + scores.length + " scores found");
 
                 System.out.print("resetting...");
+
+                while(root.getWorldUpdating()){
+                    System.out.println("waiting for step");
+                    Thread.sleep(10);
+                }
+                if(root.getWorldUpdating()){System.out.println("inStep");}
+
                 root.reset();
                 while (root.resetting()) {
                     System.out.print("...");
-                    Thread.sleep(500);
+                    Thread.sleep(10);
                 }
                 System.out.println("reset");
 

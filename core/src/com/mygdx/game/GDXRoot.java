@@ -117,6 +117,8 @@ public class GDXRoot extends Game implements ScreenListener {
 		return resetting;
 	}
 
+	public boolean getWorldUpdating(){  return controller.isUpdating; }
+
 	public boolean isRunning() { return ((BeeController)controller).isRunning(); }
 	public boolean isLoading() { return isLoading; }
 	public double[] getScores() {
