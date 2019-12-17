@@ -287,7 +287,7 @@ public class BeeController extends WorldController implements ContactListener {
         }
 
         time += dt;
-        if (time > 5) {
+        if (time > 2) {
             isRunning = false;
         }
     }

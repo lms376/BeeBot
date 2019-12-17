@@ -660,6 +660,7 @@ public abstract class WorldController implements Screen {
 	 * This is usually when it regains focus.
 	 */
 	public void resume() {
+		active = true;
 	}
 	
 	/**
