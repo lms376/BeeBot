@@ -86,8 +86,12 @@ public class BeeController extends WorldController implements ContactListener {
         for(Obstacle obj : objects) {
             obj.deactivatePhysics(world);
         }
-        if (!objects.isEmpty()) objects.clear();
-        if (!addQueue.isEmpty()) addQueue.clear();
+
+//        if (!objects.isEmpty()) objects.clear();
+//        if (!addQueue.isEmpty()) addQueue.clear();
+        objects = null;
+        addQueue = null;
+
         world.dispose();
         world = new World(gravity,false);
         world.setContactListener((ContactListener) this);

@@ -447,6 +447,7 @@ public abstract class WorldController implements Screen {
 	 */
 	protected void addObject(Obstacle obj) {
 		assert inBounds(obj) : "Object is not in bounds";
+		if (objects == null) objects = new PooledList<>();
 		objects.add(obj);
 		obj.activatePhysics(world);
 	}
@@ -547,6 +548,8 @@ public abstract class WorldController implements Screen {
 	 */
 	public void postUpdate(float dt) {
 		// Add any objects created by actions
+        if (addQueue == null) addQueue = new PooledList<>();
+
 		while (!addQueue.isEmpty()) {
 			addObject(addQueue.poll());
 		}

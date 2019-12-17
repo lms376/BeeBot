@@ -22,7 +22,7 @@ public class DesktopLauncher {
     public static void main(String[] arg) {
         Evolver evolver = new Evolver();
         try {
-            evolver.evolve(10, 20);
+            evolver.evolve(10, 100);
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
         }
@@ -278,7 +278,7 @@ class Evolver {
                 GDXRoot root = (GDXRoot)app.getApplicationListener();
                 while(root == null) {
                     System.out.print("no root...");
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                     root = (GDXRoot)app.getApplicationListener();
                 }
 
@@ -287,7 +287,7 @@ class Evolver {
                     root.set(brains);
                     while (root.isLoading()) {
                         System.out.print("...");
-                        Thread.sleep(500);
+                        Thread.sleep(100);
                     }
                     System.out.println("loaded");
 
@@ -299,7 +299,7 @@ class Evolver {
                     root.reset(brains);
                     while (root.resetting()) {
                         System.out.print("...");
-                        Thread.sleep(500);
+                        Thread.sleep(100);
                     }
                     System.out.println("reset");
                 }
@@ -307,7 +307,7 @@ class Evolver {
                 System.out.print("running");
                 while(root.isRunning()) {
                     System.out.print("...");
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                 }
                 System.out.println();
 
