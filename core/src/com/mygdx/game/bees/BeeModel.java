@@ -10,6 +10,7 @@ import com.mygdx.game.GameCanvas;
 import com.mygdx.game.brains.BeeBrain;
 import com.mygdx.game.obstacle.BeeObstacle;
 import com.mygdx.game.obstacle.Obstacle;
+import org.neuroph.nnet.MultiLayerPerceptron;
 
 import java.util.ArrayList;
 
@@ -186,7 +187,10 @@ public class BeeModel extends BeeObstacle {
     public void getBestAction() {
         double inputs[] = getInputs();
         //feed inputs into beebrain
-        double outputs[] = new double[6];
+
+        MultiLayerPerceptron nn = brain.getNetwork();
+        nn.setInput(inputs);
+        double outputs[] = nn.getOutput();
 
         int maxI = 0; double max = 0;
         for(int i = 0; i < outputs.length; i++) {

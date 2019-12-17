@@ -200,9 +200,9 @@ class Evolver {
         GDXRoot root = new GDXRoot();
         LwjglApplication app = new LwjglApplication(root, config);
 
-        ISeq<Phenotype<DoubleGene, Double>> population = readPop(new File("pop_obj_20"));
+        //ISeq<Phenotype<DoubleGene, Double>> population = readPop(new File("pop_obj_20"));
 
-        //ISeq<Phenotype<DoubleGene, Double>> population = getPopulation(size, 0);
+        ISeq<Phenotype<DoubleGene, Double>> population = getPopulation(size, 0);
         for (int gen = 0; gen < generations; gen++) {
             evolutionStep(population, gen, app);
             population = selectAndMutate(population, gen);
