@@ -20,7 +20,10 @@ import com.badlogic.gdx.assets.loaders.*;
 import com.badlogic.gdx.assets.loaders.resolvers.*;
 
 import com.mygdx.game.bees.BeeController;
+import com.mygdx.game.brains.BeeBrain;
 import com.mygdx.game.util.ScreenListener;
+
+import javax.swing.*;
 
 /**
  * Root class for a LibGDX.  
@@ -42,6 +45,11 @@ public class GDXRoot extends Game implements ScreenListener {
 	private int current;
 	/** List of all WorldControllers */
 	private WorldController controller;
+
+	private boolean isRunning;
+	private boolean isLoading;
+
+	private BeeBrain[] brains;
 	
 	/**
 	 * Creates a new game from the configuration settings.
@@ -49,11 +57,25 @@ public class GDXRoot extends Game implements ScreenListener {
 	 * This method configures the asset manager, but does not load any assets
 	 * or assign any screen.
 	 */
-	public GDXRoot() {
+	public GDXRoot(BeeBrain[] brains) {
 		// Start loading with the asset manager
 		manager = new AssetManager();
-		
+		this.brains = brains;
+		isRunning = true;
+		isLoading = true;
 		// Add font support to the asset manager
+	}
+
+	public boolean isRunning() { return ((BeeController)controller).isRunning(); }
+	public boolean isLoading() { return isLoading; }
+	public double[] getScores() {
+		double[] scores = new double[brains.length];
+		int i = 0;
+		for(BeeBrain brain : brains) {
+			scores[i] = brain.getScore();
+			i++;
+		}
+		return scores;
 	}
 
 	/** 
@@ -63,16 +85,25 @@ public class GDXRoot extends Game implements ScreenListener {
 	 * the asynchronous loader for all other assets.
 	 */
 	public void create() {
-		//TODO: loop through for each genotype in generation
 		canvas  = new GameCanvas();
 		loading = new LoadingMode(canvas,manager,1);
-		
+		isRunning = true;
 		// Initialize the three game worlds
 		controller =  new BeeController();
+		((BeeController)controller).giveBrains(brains);
 		controller.preLoadContent(manager);
 		current = 0;
 		loading.setScreenListener(this);
+		//todo:get rid of loading screen
 		setScreen(loading);
+	}
+
+
+	public void pause() {
+		// Call dispose on our children
+		setScreen(null);
+		controller.pause();
+		super.pause();
 	}
 
 	/** 
@@ -92,6 +123,7 @@ public class GDXRoot extends Game implements ScreenListener {
 		manager.clear();
 		manager.dispose();
 		super.dispose();
+		isRunning = false;
 	}
 	
 	/**
@@ -126,6 +158,7 @@ public class GDXRoot extends Game implements ScreenListener {
 			
 			loading.dispose();
 			loading = null;
+			isLoading = false;
 		} else if (exitCode == WorldController.EXIT_QUIT) {
 			// We quit the main application
 			//TODO: instead of exiting, return score for genotype

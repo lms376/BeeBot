@@ -579,7 +579,7 @@ public abstract class WorldController implements Screen {
 	 */
 	public void draw(float delta) {
 		canvas.clear();
-		
+
 		canvas.begin();
 		for(Obstacle obj : objects) {
 			obj.draw(canvas);
@@ -590,7 +590,7 @@ public abstract class WorldController implements Screen {
 		canvas.drawText(timeStr, new BitmapFont(), 20, 20);
 
 		canvas.end();
-		
+
 		if (debug) {
 			canvas.beginDebug();
 			for(Obstacle obj : objects) {
@@ -598,7 +598,7 @@ public abstract class WorldController implements Screen {
 			}
 			canvas.endDebug();
 		}
-		
+
 		// Final message
 		if (complete && !failed) {
 			displayFont.setColor(Color.YELLOW);
@@ -651,7 +651,7 @@ public abstract class WorldController implements Screen {
 	 * also paused before it is destroyed.
 	 */
 	public void pause() {
-		// TODO Auto-generated method stub
+		active = false;
 	}
 
 	/**
@@ -660,7 +660,6 @@ public abstract class WorldController implements Screen {
 	 * This is usually when it regains focus.
 	 */
 	public void resume() {
-		// TODO Auto-generated method stub
 	}
 	
 	/**
