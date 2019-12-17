@@ -66,6 +66,44 @@ public class GDXRoot extends Game implements ScreenListener {
 		// Add font support to the asset manager
 	}
 
+	public GDXRoot() {
+		// Start loading with the asset manager
+		manager = new AssetManager();
+		isRunning = true;
+		isLoading = true;
+		// Add font support to the asset manager
+	}
+
+	public void set(BeeBrain[] brains) {
+		manager = new AssetManager();
+		this.brains = brains;
+		isRunning = true;
+		isLoading = true;
+
+		if(controller != null) {
+			controller.reset();
+			((BeeController) controller).giveBrains(brains);
+		} else {
+			controller =  new BeeController();
+			((BeeController)controller).giveBrains(brains);
+		}
+	}
+
+	public void reset(BeeBrain[] brains) {
+		manager = new AssetManager();
+		this.brains = brains;
+		isRunning = true;
+		isLoading = true;
+
+		if(controller != null) {
+			controller.reset();
+			((BeeController) controller).giveBrains(brains);
+		} else {
+			controller =  new BeeController();
+			((BeeController)controller).giveBrains(brains);
+		}
+	}
+
 	public boolean isRunning() { return ((BeeController)controller).isRunning(); }
 	public boolean isLoading() { return isLoading; }
 	public double[] getScores() {
@@ -76,6 +114,12 @@ public class GDXRoot extends Game implements ScreenListener {
 			i++;
 		}
 		return scores;
+	}
+
+	public void reset() {
+		controller.reset();
+		brains = null;
+		manager = new AssetManager();
 	}
 
 	/** 
