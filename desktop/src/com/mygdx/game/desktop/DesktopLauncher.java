@@ -199,6 +199,8 @@ class Evolver {
             evolutionStep(population, gen, app);
             population = selectAndMutate(population, gen);
         }
+
+        app.exit();
     }
 
     /**
@@ -299,7 +301,11 @@ class Evolver {
                 System.out.println("\n" + scores.length + " scores found");
 
                 System.out.print("resetting...");
-                ((GDXRoot)app.getApplicationListener()).reset();
+                root.reset();
+                while (root.resetting()) {
+                    System.out.print("...");
+                    Thread.sleep(500);
+                }
                 System.out.println("reset");
 
                 return scores;
