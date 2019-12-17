@@ -626,6 +626,12 @@ public abstract class WorldController implements Screen {
 		// IGNORE FOR NOW
 	}
 
+	boolean resetting;
+
+	public boolean isResetting(){ return resetting; }
+
+
+
 	/**
 	 * Called when the Screen should render itself.
 	 *
@@ -635,7 +641,7 @@ public abstract class WorldController implements Screen {
 	 * @param delta Number of seconds since last animation frame
 	 */
 	public void render(float delta) {
-		if (active) {
+		if (active&&!resetting) {
 			if (preUpdate(delta)) {
 				update(delta); // This is the one that must be defined.
 				postUpdate(delta);
