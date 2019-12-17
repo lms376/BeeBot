@@ -46,6 +46,8 @@ project(":desktop") {
         api "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         api "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
         api "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        implementation "io.jenetics:jenetics:5.1.0"
+        implementation "org.beykery:neuroph:2.92"
         
     }
 }
