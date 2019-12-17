@@ -578,41 +578,30 @@ public abstract class WorldController implements Screen {
 	 *
 	 */
 	public void draw(float delta) {
-		canvas.clear();
+	    if(active) {
+            canvas.clear();
 
-		canvas.begin();
-		for(Obstacle obj : objects) {
-			obj.draw(canvas);
-		}
+            canvas.begin();
+            for (Obstacle obj : objects) {
+                if (obj != null) obj.draw(canvas);
+            }
 
-		DecimalFormat format = new DecimalFormat("#.##");
-		String timeStr = format.format(time);
-		canvas.drawText(timeStr, new BitmapFont(), 20, 20);
+            DecimalFormat format = new DecimalFormat("#.##");
+            String timeStr = format.format(time);
+            canvas.drawText(timeStr, new BitmapFont(), 20, 20);
 
-		canvas.end();
+            canvas.end();
 
-		if (debug) {
-			canvas.beginDebug();
-			for(Obstacle obj : objects) {
-				obj.drawDebug(canvas);
-			}
-			canvas.endDebug();
-		}
-
-		// Final message
-		if (complete && !failed) {
-			displayFont.setColor(Color.YELLOW);
-			canvas.begin(); // DO NOT SCALE
-			canvas.drawTextCentered("VICTORY!", displayFont, 0.0f);
-			canvas.end();
-		} else if (failed) {
-			displayFont.setColor(Color.RED);
-			canvas.begin(); // DO NOT SCALE
-			canvas.drawTextCentered("FAILURE!", displayFont, 0.0f);
-			canvas.end();
-		}
+            if (debug) {
+                canvas.beginDebug();
+                for (Obstacle obj : objects) {
+                    obj.drawDebug(canvas);
+                }
+                canvas.endDebug();
+            }
+        }
 	}
-	
+
 	/**
 	 * Called when the Screen is resized. 
 	 *

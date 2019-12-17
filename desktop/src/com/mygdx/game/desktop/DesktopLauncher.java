@@ -285,15 +285,18 @@ class Evolver {
                 root.set(brains);
 
                 if(gen == 0) {
+                    System.out.print("loading");
                     while (root.isLoading()) {
-                        System.out.print("loading...");
+                        System.out.print("...");
                         Thread.sleep(500);
                     }
                     System.out.println();
                 }
                 System.out.println("---------------GEN " + gen + "---------------");
+
+                System.out.print("running");
                 while(root.isRunning()) {
-                    System.out.print("running...");
+                    System.out.print("...");
                     Thread.sleep(500);
                 }
                 System.out.println();
