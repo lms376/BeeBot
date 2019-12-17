@@ -88,6 +88,9 @@ public class GDXRoot extends Game implements ScreenListener {
 			controller =  new BeeController();
 			((BeeController)controller).giveBrains(brains);
 		}
+
+		controller.resume();
+		controller.setResetting(false);
 		resetting = false;
 	}
 
@@ -100,24 +103,20 @@ public class GDXRoot extends Game implements ScreenListener {
 
 		if(controller != null) {
 			controller.pause();
-			controller.resetting = true;
+			controller.setResetting(true);
 			controller.reset();
 			((BeeController) controller).giveBrains(brains);
-			controller.resetting = false;
-			controller.resume();
 		} else {
 			controller =  new BeeController();
 			((BeeController)controller).giveBrains(brains);
 		}
+        controller.setResetting(false);
+        controller.resume();
 		resetting = false;
 	}
 
 	private boolean resetting;
-	public boolean resetting() {
-		return resetting;
-	}
-
-	public boolean getWorldUpdating(){  return controller.isUpdating; }
+	public boolean resetting() {return resetting;}
 
 	public boolean isRunning() { return ((BeeController)controller).isRunning(); }
 	public boolean isLoading() { return isLoading; }
@@ -135,12 +134,13 @@ public class GDXRoot extends Game implements ScreenListener {
 
 	public void reset() {
 		controller.pause();
-		controller.resetting = true;
+		controller.setResetting(true);
 		controller.reset();
+		controller = null;
 		brains = null;
 		manager = new AssetManager();
-		controller.resetting = false;
-		controller.resume();
+		//controller.setResetting(false);
+		//controller.resume();
 	}
 
 	/** 

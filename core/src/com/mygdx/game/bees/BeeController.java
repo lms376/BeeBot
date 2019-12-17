@@ -40,6 +40,7 @@ public class BeeController extends WorldController implements ContactListener {
     private boolean isRunning;
 
     private static final float FLOWER_RATIO = 4/1;
+    private static Integer lock = 0;
 
     public BeeController(){
         setDebug(false);
@@ -85,10 +86,9 @@ public class BeeController extends WorldController implements ContactListener {
         for(Obstacle obj : objects) {
             obj.deactivatePhysics(world);
         }
-        objects.clear();
-        addQueue.clear();
+        if (!objects.isEmpty()) objects.clear();
+        if (!addQueue.isEmpty()) addQueue.clear();
         world.dispose();
-
         world = new World(gravity,false);
         world.setContactListener((ContactListener) this);
         setComplete(false);

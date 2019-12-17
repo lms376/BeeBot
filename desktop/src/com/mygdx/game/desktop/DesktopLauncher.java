@@ -278,26 +278,36 @@ class Evolver {
                 GDXRoot root = (GDXRoot)app.getApplicationListener();
                 while(root == null) {
                     System.out.print("no root...");
-                    Thread.sleep(10);
+                    Thread.sleep(500);
                     root = (GDXRoot)app.getApplicationListener();
                 }
 
-                root.set(brains);
-
                 if(gen == 0) {
                     System.out.print("loading");
+                    root.set(brains);
                     while (root.isLoading()) {
                         System.out.print("...");
-                        Thread.sleep(10);
+                        Thread.sleep(500);
                     }
-                    System.out.println();
+                    System.out.println("loaded");
+
+                    System.out.println("---------------GEN " + gen + "---------------");
+                } else {
+                    System.out.println("---------------GEN " + gen + "---------------");
+
+                    System.out.print("resetting...");
+                    root.reset(brains);
+                    while (root.resetting()) {
+                        System.out.print("...");
+                        Thread.sleep(500);
+                    }
+                    System.out.println("reset");
                 }
-                System.out.println("---------------GEN " + gen + "---------------");
 
                 System.out.print("running");
                 while(root.isRunning()) {
                     System.out.print("...");
-                    Thread.sleep(10);
+                    Thread.sleep(500);
                 }
                 System.out.println();
 
@@ -305,20 +315,12 @@ class Evolver {
                 System.out.println(format("%.2f", root.secondsElapsed()) + "s");
                 System.out.println("\n" + scores.length + " scores found");
 
-                System.out.print("resetting...");
-
-                while(root.getWorldUpdating()){
-                    System.out.println("waiting for step");
-                    Thread.sleep(10);
-                }
-                if(root.getWorldUpdating()){System.out.println("inStep");}
-
-                root.reset();
-                while (root.resetting()) {
-                    System.out.print("...");
-                    Thread.sleep(10);
-                }
-                System.out.println("reset");
+              //  System.out.print("resetting...");
+                //root.reset();while (root.resetting()) {
+//                    System.out.print("...");
+//                    Thread.sleep(1000);
+//                }
+             //   System.out.println("reset");
 
                 return scores;
             });

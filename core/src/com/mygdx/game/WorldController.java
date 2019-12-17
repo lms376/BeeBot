@@ -249,6 +249,10 @@ public abstract class WorldController implements Screen {
 	/** Countdown active for winning or losing */
 	private int countdown;
 
+	private boolean resetting;
+	public boolean isResetting() { return resetting; }
+	public void setResetting(boolean val) { resetting = val; }
+
 	/**
 	 * Returns true if debug mode is active.
 	 *
@@ -468,10 +472,6 @@ public abstract class WorldController implements Screen {
 	 * This method disposes of the world and creates a new one.
 	 */
 	public abstract void reset();
-
-	public boolean isUpdating;
-	public boolean isUpdating(){ return isUpdating; }
-	public void setUpdating(boolean val){ isUpdating = val; }
 	
 	/**
 	 * Returns whether to process the update loop
@@ -485,7 +485,6 @@ public abstract class WorldController implements Screen {
 	 * @return whether to process the update loop
 	 */
 	public boolean preUpdate(float dt) {
-		setUpdating(true);
 		InputController input = InputController.getInstance();
 		input.readInput(bounds, scale);
 		if (listener == null) {
@@ -570,7 +569,6 @@ public abstract class WorldController implements Screen {
 				obj.update(dt);
 			}
 		}
-		setUpdating(false);
 	}
 	
 	/**
@@ -621,12 +619,6 @@ public abstract class WorldController implements Screen {
 		// IGNORE FOR NOW
 	}
 
-	boolean resetting;
-
-	public boolean isResetting(){ return resetting; }
-
-
-
 	/**
 	 * Called when the Screen should render itself.
 	 *
@@ -636,7 +628,7 @@ public abstract class WorldController implements Screen {
 	 * @param delta Number of seconds since last animation frame
 	 */
 	public void render(float delta) {
-		if (active&&!resetting) {
+		if (active && !resetting) {
 			if (preUpdate(delta)) {
 				update(delta); // This is the one that must be defined.
 				postUpdate(delta);
