@@ -9,6 +9,8 @@ import io.jenetics.*;
 import io.jenetics.internal.util.IntRef;
 import io.jenetics.util.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.IntStream;
@@ -19,11 +21,12 @@ import static java.lang.Math.pow;
 import static java.lang.String.format;
 
 public class DesktopLauncher {
-    public static void main(String[] arg) {
+    public static void main(String[] arg) throws IOException {
         Evolver evolver = new Evolver();
         try {
             evolver.evolve(10, 20);
         } catch (Exception e) {
+            evolver.writePop(-1);
             System.out.println("ERROR: " + e.getMessage());
         }
     }
@@ -50,6 +53,8 @@ class Evolver {
     private static int[] layers;
 
     private double[] fitnesses;
+
+    private static ISeq<Phenotype<DoubleGene, Double>> pop;
 
     private static DoubleChromosome getChromosome(int length, int[] l, int i){
         //length = #hidden layers + 1, total layers -1.
@@ -171,7 +176,7 @@ class Evolver {
     }
 
     void evolve(int size, int generations)
-            throws ExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException, IOException {
 //        final Engine<DoubleGene, Double> engine = Engine
 //                .builder(DesktopLauncher::fitness, ENCODING)
 //                .alterers(new DynamicMutator<>(0.25))
@@ -195,11 +200,16 @@ class Evolver {
         GDXRoot root = new GDXRoot();
         LwjglApplication app = new LwjglApplication(root, config);
 
-        ISeq<Phenotype<DoubleGene, Double>> population = getPopulation(size, 0);
+        ISeq<Phenotype<DoubleGene, Double>> population = readPop(new File("pop_obj_20"));
+
+        //ISeq<Phenotype<DoubleGene, Double>> population = getPopulation(size, 0);
         for (int gen = 0; gen < generations; gen++) {
             evolutionStep(population, gen, app);
             population = selectAndMutate(population, gen);
+            pop = population;
         }
+
+        writePop(population, generations);
 
         app.exit();
     }
@@ -269,6 +279,26 @@ class Evolver {
 
         return scores;
     }
+
+    public static void writePop(ISeq<Phenotype<DoubleGene, Double>> population, int gen) throws IOException {
+        final File file = new File("pop_obj_"+gen);
+        IO.object.write(population, file);
+
+    }
+
+    public static void writePop(int gen) throws IOException {
+        final File file = new File("pop_obj_"+gen);
+        IO.object.write(pop, file);
+
+    }
+
+    public static ISeq<Phenotype<DoubleGene, Double>> readPop(File file) throws IOException {
+        ISeq<Phenotype<DoubleGene, Double>> population = (ISeq<Phenotype<DoubleGene, Double>>)IO.object.read(file);
+        return population;
+    }
+
+
+
 
     class Stepper {
         private ExecutorService executor = Executors.newSingleThreadExecutor();
