@@ -226,7 +226,6 @@ public class GDXRoot extends Game implements ScreenListener {
 			isLoading = false;
 		} else if (exitCode == WorldController.EXIT_QUIT) {
 			// We quit the main application
-			//TODO: instead of exiting, return score for genotype
 			Gdx.app.exit();
 		}
 	}

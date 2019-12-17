@@ -7,6 +7,7 @@ import org.neuroph.core.Layer;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.LearningRule;
 import org.neuroph.nnet.MultiLayerPerceptron;
+import org.neuroph.util.NeuronProperties;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -56,10 +57,11 @@ public class BeeBrain {
         network = new MultiLayerPerceptron(layers);
 
         //todo: fix weights
-        weights = new double[network.getWeights().length];
-        Arrays.fill(weights, 1);
+        //weights = new double[network.getWeights().length];
+        //Arrays.fill(weights, 1);
 
         network.setWeights(weights);
+
         network.setInputNeurons(network.getLayerAt(0).getNeurons());
         network.setOutputNeurons(network.getLayerAt(layers.length-1).getNeurons());
     }
