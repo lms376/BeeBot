@@ -249,6 +249,10 @@ public abstract class WorldController implements Screen {
 	/** Countdown active for winning or losing */
 	private int countdown;
 
+	private boolean resetting;
+	public boolean isResetting() { return resetting; }
+	public void setResetting(boolean val) { resetting = val; }
+
 	/**
 	 * Returns true if debug mode is active.
 	 *
@@ -624,7 +628,7 @@ public abstract class WorldController implements Screen {
 	 * @param delta Number of seconds since last animation frame
 	 */
 	public void render(float delta) {
-		if (active) {
+		if (active && !resetting) {
 			if (preUpdate(delta)) {
 				update(delta); // This is the one that must be defined.
 				postUpdate(delta);

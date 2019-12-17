@@ -309,7 +309,7 @@ class Evolver {
                 root.reset();
                 while (root.resetting()) {
                     System.out.print("...");
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                 }
                 System.out.println("reset");
 
