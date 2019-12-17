@@ -1,58 +1,55 @@
 package com.mygdx.game.desktop;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.mygdx.game.GDXRoot;
-import com.mygdx.game.bees.BeeController;
 import com.mygdx.game.brains.BeeBrain;
 import io.jenetics.*;
-import io.jenetics.engine.Engine;
-import io.jenetics.engine.EvolutionResult;
 import io.jenetics.internal.util.IntRef;
 import io.jenetics.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.IntStream;
 
 import static io.jenetics.internal.math.random.indexes;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
+import static java.lang.String.format;
 
 public class DesktopLauncher {
-    public static void main (String[] arg) {
-        set(4,8,32, 256, 0.0, 1.0, 252, 140);
-        evolve();
+    public static void main(String[] arg) {
+        Evolver evolver = new Evolver();
+        try {
+            evolver.evolve(10, 100);
+        } catch (Exception e) {
+            System.out.println("ERROR: " + e.getMessage());
+        }
     }
+}
 
-    static void run(BeeBrain bb) {
-        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        LwjglApplicationConfiguration.disableAudio = true;
-        config.title = "BeeGame";
-        config.width  = 1600;
-        config.height = 900;
-
-        new LwjglApplication(new GDXRoot(bb), config);
-    }
-
-    //#region Genotype
-    private static int minLength, maxLength;
-    private static double minVal, maxVal;
-    private static int minGenes, maxGenes;
+class Evolver {
+    //    static void run(BeeBrain[] bb) {
+    //        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+    //        LwjglApplicationConfiguration.disableAudio = true;
+    //        config.title = "BeeGame#";
+    //        config.width  = 1600;
+    //        config.height = 900;
+    //
+    //        new LwjglApplication(new GDXRoot(bb), config);
+    //    }
+    private static final int minLength = 4,
+            maxLength = 8;
+    private static final double minVal = 0,
+            maxVal = 1;
+    private static final int minChroms = 4,
+            maxChroms = 16;
+    private static final int inNum = 28,
+            outNum = 6;
     private static int[] layers;
-    private static int inNum, outNum;
 
-    public static void set(int _minLength, int _maxLength, int _minGenes, int _maxGenes, double _minVal, double _maxVal, int _in, int _out) {
-        minLength = _minLength;
-        maxLength = _maxLength;
-        minGenes = _minGenes;
-        maxGenes = _maxGenes;
-        minVal = _minVal;
-        maxVal = _maxVal;
-        inNum = _in;
-        outNum = _out;
-    }
+    private double[] fitnesses;
 
     private static DoubleChromosome getChromosome(int length, int[] l, int i){
         //length = #hidden layers + 1, total layers -1.
@@ -64,7 +61,7 @@ public class DesktopLauncher {
         int prevNum = l[i]; //neurons in prev layer
         int nextNum = 0;
         if(i < length - 1) {
-            nextNum = random.nextInt(maxGenes) + minGenes;
+            nextNum = random.nextInt(maxChroms) + minChroms;
             l[i+1] = nextNum;
         } else {
             nextNum = l[length];
@@ -95,15 +92,6 @@ public class DesktopLauncher {
         final Random random = RandomRegistry.getRandom();
         return getGenotype(random.nextInt(maxLength)+minLength);
     };
-
-    private static double fitness(final Genotype<DoubleGene> gt) {
-        BeeBrain brain = new BeeBrain(gt, layers);
-        run(brain);
-
-        double score = brain.getScore();
-        System.out.println("Score: " + score);
-        return score;
-    }
 
     // The special mutator also variates the chromosome/genotype length.
     private static final class DynamicMutator<
@@ -182,17 +170,183 @@ public class DesktopLauncher {
         }
     }
 
-    public static void evolve() {
-        final Engine<DoubleGene, Double> engine = Engine
-                .builder(DesktopLauncher::fitness, ENCODING)
-                .alterers(new DynamicMutator<>(0.25))
-                .build();
+    void evolve(int size, int generations)
+            throws ExecutionException, InterruptedException {
+//        final Engine<DoubleGene, Double> engine = Engine
+//                .builder(DesktopLauncher::fitness, ENCODING)
+//                .alterers(new DynamicMutator<>(0.25))
+//                .populationSize(20)
+//                //.executor(new BeeExecutor())
+//                .build();
+//
+//        final EvolutionResult<DoubleGene, Double> result = engine.stream()
+//                .limit(20)
+//                .collect(EvolutionResult.toBestEvolutionResult());
+//
+//        System.out.println("Fitness: " + result.getBestFitness());
 
-        final EvolutionResult<DoubleGene, Double> result = engine.stream()
-                .limit(20)
-                .collect(EvolutionResult.toBestEvolutionResult());
+        LwjglApplicationConfiguration.disableAudio = true;
 
-        System.out.println("Fitness: " + result.getBestFitness());
+        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+        config.forceExit = false;
+        config.width  = 1600;
+        config.height = 900;
+
+        GDXRoot root = new GDXRoot();
+        LwjglApplication app = new LwjglApplication(root, config);
+
+        ISeq<Phenotype<DoubleGene, Double>> population = getPopulation(size, 0);
+        for (int gen = 0; gen < generations; gen++) {
+            evolutionStep(population, gen, app);
+            population = selectAndMutate(population, gen);
+        }
+
+        app.exit();
     }
-    //#endregion
+
+    /**
+     * @param population population to mutate to 25% of
+     * @param gen generation number
+     * @return a mutated population
+     */
+    private ISeq<Phenotype<DoubleGene, Double>> selectAndMutate(ISeq<Phenotype<DoubleGene, Double>> population, int gen) {
+        // :n/2 twice mutated top 25%
+        // :n randomly generated
+
+        MSeq<Phenotype<DoubleGene, Double>> popWithFit = MSeq.of(population);
+        for(int i = 0; i < population.length(); i++) {
+            Phenotype<DoubleGene, Double> pt = population.get(i);
+            popWithFit.set(i, pt.withFitness(fitnesses[i]));
+        }
+
+        int count = (int)(popWithFit.length()*0.25);
+
+        TruncationSelector<DoubleGene, Double> ts = new TruncationSelector<>();
+        ISeq<Phenotype<DoubleGene, Double>> top25p = ts.select(popWithFit, count, Optimize.MAXIMUM);
+
+        ISeq<Phenotype<DoubleGene, Double>> mutatedSeq = ISeq.of(top25p.get(0));
+
+        DynamicMutator<DoubleGene, Double> dm = new DynamicMutator<>(DynamicMutator.DEFAULT_ALTER_PROBABILITY);
+        AltererResult<DoubleGene, Double> alteredTop25p = dm.alter(top25p, gen);
+
+        mutatedSeq = mutatedSeq.append(alteredTop25p.getPopulation());
+        alteredTop25p = dm.alter(top25p, gen);
+        mutatedSeq = mutatedSeq.append(alteredTop25p.getPopulation());
+
+        count = popWithFit.length() - mutatedSeq.length();
+        mutatedSeq = mutatedSeq.append(getPopulation(count, gen));
+
+        return mutatedSeq;
+    }
+
+    /**
+     * @param population population
+     * @param gen generation number
+     * @return scores array
+     */
+    private double[] evolutionStep(ISeq<Phenotype<DoubleGene, Double>> population, int gen, LwjglApplication app)
+            throws ExecutionException, InterruptedException {
+        //Run game w/ beebrains
+        //collect results
+        //selectAndMutate with results
+        //gen++
+        BeeBrain[] brains = new BeeBrain[population.length()];
+        int i = 0;
+
+        for(Phenotype<DoubleGene, Double> pt: population){
+            BeeBrain bb = new BeeBrain(pt.getGenotype());
+            brains[i++] = bb;
+        }
+
+        Future<double[]> future = new Stepper().step(app, brains, gen);
+        while(!future.isDone()) {
+            Thread.sleep(1000);
+        }
+        System.out.println();
+
+        double[] scores = future.get();
+        fitnesses = scores;
+
+        return scores;
+    }
+
+    class Stepper {
+        private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        Future<double[]> step(LwjglApplication app, BeeBrain[] brains, int gen) {
+            return executor.submit(()  -> {
+                GDXRoot root = (GDXRoot)app.getApplicationListener();
+                while(root == null) {
+                    System.out.print("no root...");
+                    Thread.sleep(100);
+                    root = (GDXRoot)app.getApplicationListener();
+                }
+
+                if(gen == 0) {
+                    System.out.print("loading");
+                    root.set(brains);
+                    while (root.isLoading()) {
+                        System.out.print("...");
+                        Thread.sleep(100);
+                    }
+                    System.out.println("loaded");
+
+                    System.out.println("---------------GEN " + gen + "---------------");
+                } else {
+                    System.out.println("---------------GEN " + gen + "---------------");
+
+                    System.out.print("resetting...");
+                    root.reset(brains);
+                    while (root.resetting()) {
+                        System.out.print("...");
+                        Thread.sleep(100);
+                    }
+                    System.out.println("reset");
+                }
+
+                System.out.print("running");
+                while(root.isRunning()) {
+                    System.out.print("...");
+                    Thread.sleep(100);
+                }
+                System.out.println();
+
+                double[] scores = root.getScores();
+                System.out.println(format("%.2f", root.secondsElapsed()) + "s");
+                System.out.println("\n" + scores.length + " scores found");
+
+              //  System.out.print("resetting...");
+                //root.reset();while (root.resetting()) {
+//                    System.out.print("...");
+//                    Thread.sleep(1000);
+//                }
+             //   System.out.println("reset");
+
+                return scores;
+            });
+        }
+    }
+
+    /**
+     * @param size number of phenotypes in population
+     * @param gen generation number
+     * @return ISeq of [size] random phenotypes
+     */
+    private ISeq<Phenotype<DoubleGene, Double>> getPopulation(int size, int gen) {
+        //generates [size] random phenotypes
+
+        //todo: try to find better data structure
+        ArrayList<Phenotype<DoubleGene, Double>> popList = new ArrayList<>();
+        for(int i = 0; i < size; i++) {
+            Genotype<DoubleGene> gt = ENCODING.newInstance();
+            Phenotype<DoubleGene, Double> pt = Phenotype.of(
+                    gt,
+                    gen
+            );
+
+            popList.add(pt);
+        }
+
+        return ISeq.of(popList);
+    }
 }

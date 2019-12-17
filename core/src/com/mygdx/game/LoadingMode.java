@@ -266,9 +266,9 @@ public class LoadingMode implements Screen, InputProcessor{
 	 */
 	private void draw() {
 		canvas.begin();
-		canvas.draw(background, 0, 0);
+		//canvas.draw(background, 0, 0);
 		if (playButton == null) {
-			drawProgress(canvas);
+			//drawProgress(canvas);
 		} else {
 			Color tint = (pressState == 1 ? Color.GRAY: Color.WHITE);
 			canvas.draw(playButton, tint, playButton.getWidth()/2, playButton.getHeight()/2, 
@@ -452,8 +452,7 @@ public class LoadingMode implements Screen, InputProcessor{
 	/** 
 	 * Called when a key is typed (UNSUPPORTED)
 	 *
-	 * @param keycode the key typed
-	 * @return whether to hand the event to other listeners. 
+	 * @return whether to hand the event to other listeners.
 	 */
 	public boolean keyTyped(char character) { 
 		return true; 

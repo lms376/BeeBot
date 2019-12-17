@@ -249,6 +249,10 @@ public abstract class WorldController implements Screen {
 	/** Countdown active for winning or losing */
 	private int countdown;
 
+	private boolean resetting;
+	public boolean isResetting() { return resetting; }
+	public void setResetting(boolean val) { resetting = val; }
+
 	/**
 	 * Returns true if debug mode is active.
 	 *
@@ -443,6 +447,7 @@ public abstract class WorldController implements Screen {
 	 */
 	protected void addObject(Obstacle obj) {
 		assert inBounds(obj) : "Object is not in bounds";
+		if (objects == null) objects = new PooledList<>();
 		objects.add(obj);
 		obj.activatePhysics(world);
 	}
@@ -543,6 +548,8 @@ public abstract class WorldController implements Screen {
 	 */
 	public void postUpdate(float dt) {
 		// Add any objects created by actions
+        if (addQueue == null) addQueue = new PooledList<>();
+
 		while (!addQueue.isEmpty()) {
 			addObject(addQueue.poll());
 		}
@@ -578,41 +585,30 @@ public abstract class WorldController implements Screen {
 	 *
 	 */
 	public void draw(float delta) {
-		canvas.clear();
-		
-		canvas.begin();
-		for(Obstacle obj : objects) {
-			obj.draw(canvas);
-		}
+	    if(active) {
+            canvas.clear();
 
-		DecimalFormat format = new DecimalFormat("#.##");
-		String timeStr = format.format(time);
-		canvas.drawText(timeStr, new BitmapFont(), 20, 20);
+            canvas.begin();
+            for (Obstacle obj : objects) {
+                if (obj != null) obj.draw(canvas);
+            }
 
-		canvas.end();
-		
-		if (debug) {
-			canvas.beginDebug();
-			for(Obstacle obj : objects) {
-				obj.drawDebug(canvas);
-			}
-			canvas.endDebug();
-		}
-		
-		// Final message
-		if (complete && !failed) {
-			displayFont.setColor(Color.YELLOW);
-			canvas.begin(); // DO NOT SCALE
-			canvas.drawTextCentered("VICTORY!", displayFont, 0.0f);
-			canvas.end();
-		} else if (failed) {
-			displayFont.setColor(Color.RED);
-			canvas.begin(); // DO NOT SCALE
-			canvas.drawTextCentered("FAILURE!", displayFont, 0.0f);
-			canvas.end();
-		}
+            DecimalFormat format = new DecimalFormat("#.##");
+            String timeStr = format.format(time);
+            canvas.drawText(timeStr, new BitmapFont(), 20, 20);
+
+            canvas.end();
+
+            if (debug) {
+                canvas.beginDebug();
+                for (Obstacle obj : objects) {
+                    obj.drawDebug(canvas);
+                }
+                canvas.endDebug();
+            }
+        }
 	}
-	
+
 	/**
 	 * Called when the Screen is resized. 
 	 *
@@ -635,7 +631,7 @@ public abstract class WorldController implements Screen {
 	 * @param delta Number of seconds since last animation frame
 	 */
 	public void render(float delta) {
-		if (active) {
+		if (active && !resetting) {
 			if (preUpdate(delta)) {
 				update(delta); // This is the one that must be defined.
 				postUpdate(delta);
@@ -651,7 +647,7 @@ public abstract class WorldController implements Screen {
 	 * also paused before it is destroyed.
 	 */
 	public void pause() {
-		// TODO Auto-generated method stub
+		active = false;
 	}
 
 	/**
@@ -660,7 +656,7 @@ public abstract class WorldController implements Screen {
 	 * This is usually when it regains focus.
 	 */
 	public void resume() {
-		// TODO Auto-generated method stub
+		active = true;
 	}
 	
 	/**

@@ -27,6 +27,7 @@ public class HiveModel extends HiveObstacle {
     }
 
     public void draw(GameCanvas canvas){
+        if (body == null) return;
         Vector2 position = body.getPosition();
 
         int width = (int) (HIVE_WIDTH * drawScale.x);

@@ -16,6 +16,21 @@ public class BeeBrain {
     MultiLayerPerceptron network;
     private double score;
 
+    public BeeBrain(Genotype<DoubleGene> gt){
+        int len = gt.length();
+        int[] layerList = new int[len];
+        int[] neuronList = new int[len+1];
+        neuronList[0] = 512;
+        neuronList[len] = 256;
+        Iterator<Chromosome<DoubleGene>> gtIter = gt.iterator();
+        int i = 0;
+        while(gtIter.hasNext()){
+            int genes = gtIter.next().length();
+
+        }
+        createNN(layerList, getWeights(gt));
+    }
+
     public BeeBrain(Genotype<DoubleGene> gt, int[] layers){
         int len = gt.length();
         int[] layerList = new int[len];

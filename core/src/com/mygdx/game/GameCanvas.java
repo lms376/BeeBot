@@ -125,6 +125,7 @@ public class GameCanvas {
 			Gdx.app.error("GameCanvas", "Cannot dispose while drawing active", new IllegalStateException());
 			return;
 		}
+
 		spriteBatch.dispose();
 		spriteBatch = null;
 		local  = null;
