@@ -16,6 +16,7 @@ import java.util.stream.IntStream;
 import static io.jenetics.internal.math.random.indexes;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
+import static java.lang.String.format;
 
 public class DesktopLauncher {
     public static void main(String[] arg) {
@@ -298,6 +299,7 @@ class Evolver {
                 System.out.println();
 
                 double[] scores = root.getScores();
+                System.out.println(format("%.2f", root.secondsElapsed()) + "s");
                 System.out.println("\n" + scores.length + " scores found");
 
                 System.out.print("resetting...");
