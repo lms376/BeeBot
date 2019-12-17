@@ -1,5 +1,6 @@
 package com.mygdx.game.bees;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -34,25 +35,22 @@ public class BeeController extends WorldController implements ContactListener {
     private ArrayList<FlowerModel> flowers;
     private ArrayList<Obstacle> obstacles;
     private BeeModel testBee;
-    private BeeBrain brain;
-    private HiveMind mind;
-    private MultiLayerPerceptron nn;
+    private BeeBrain[] brains;
+
+    private boolean isRunning;
 
     private static final float FLOWER_RATIO = 4/1;
-
-    private double score;
 
     public BeeController(){
         setDebug(false);
         setComplete(false);
         setFailure(false);
         world.setContactListener((ContactListener) this);
-        //BeeGenotype.set(this, 4,8,32, 256, 0.0, 1.0, 252, 140);
-        //brain = new BeeBrain(gt, layers);
-
-        mind = new HiveMind();
         time = 0;
+        isRunning = true;
     }
+
+    public boolean isRunning() { return isRunning; }
 
     public void preLoadContent(AssetManager manager) {
         if (assetState != AssetState.EMPTY) {
@@ -132,7 +130,7 @@ public class BeeController extends WorldController implements ContactListener {
 //        BeeModel bee;
 //        dwidth = beeTexture.getRegionWidth()/scale.x;
 //        dheight = beeTexture.getRegionHeight()/scale.y;
-        generateBees(3);
+        generateBees();
         testBee = bees[0];
 //        bee = new BeeModel(15,10,0.5f,0.25f);
 //        bee.setDrawScale(scale);
@@ -141,11 +139,16 @@ public class BeeController extends WorldController implements ContactListener {
 //        testBee = bee;
     }
 
-    private void generateBees(int count) {
+    public void giveBrains(BeeBrain[] brains){
+        this.brains = brains;
+    }
+
+    private void generateBees() {
         BeeModel bee;
-        bees = new BeeModel[count];
-        for (int i = 0; i < count; i++) {
-            bee = new BeeModel(15, 3 + (100/scale.y) + .01f, 0.5f, 0.25f);
+        bees = new BeeModel[brains.length];
+        for (int i = 0; i < brains.length; i++) {
+            bee = new BeeModel(15, 3 + (100/scale.y) + .01f, 0.5f, 0.25f, new Vector2(15, 3 + (100/scale.y)));
+            bee.giveBrain(brains[i]);
             bee.setDrawScale(scale);
             addObject(bee);
             bees[i] = bee;
@@ -263,44 +266,10 @@ public class BeeController extends WorldController implements ContactListener {
     }
     //#endregion
 
-    public double getScore() {
-        return score;
-    }
-
-    public double evaluate(Genotype<DoubleGene> gt, int[] layers){
-        BeeBrain brain = new BeeBrain(gt, layers);
-
-        nn = brain.getNetwork();
-        reset();
-
-        //TODO: figure this out
-        return 0;
-    }
-
     @Override
     public void update(float dt) {
-        double[] inputs = createInputs();
-        nn.setInput(inputs);
-        double[] out = nn.getOutput();
-
-        //give all bees a goal path from mind ai, then let brain take actions
-            int i = 0;
-            for(BeeModel bee : bees) {
-                bee.setSensors(flowers, obstacles);
-
-            i*=14; int maxI = 0; double max = 0;
-            while (i < (i+1)*14) {
-
-                if (out[i] > max) {
-                    maxI = i;
-                    max = out[i];
-                }
-
-                i++;
-            }
-
-            int j = maxI % 14;
-            if (j > 0) bee.updateFlaps(j);
+        for(BeeModel bee : bees) {
+            bee.getBestAction();
 
             if(bee.getOnFlower() == 1){
                 bee.incrPollen(5);
@@ -309,63 +278,15 @@ public class BeeController extends WorldController implements ContactListener {
                 bee.decrPollen(5);
                 bee.incrEnergy(5);
             }
+
+            bee.updateScore();
         }
 
         time += dt;
-    }
-
-    public double[] createInputs() {
-        double[] inputs = new double[252];
-
-        inputs[0] = 0; //hive honey
-        inputs[1] = 0; //hive position
-
-        int i = 2;
-        for(BeeModel bee : bees) {
-            inputs[i] = bee.getAlive();
-            i++;
-            inputs[i] = bee.getEnergy();
-            i++;
-            inputs[i] = bee.getPollen();
-            i++;
-            inputs[i] = bee.getVX();
-            i++;
-            inputs[i] = bee.getVY();
-            i++;
-
-            inputs = addSensorInputs(i, inputs, bee);
-            i+= 16;
-
-            Vector2 pos = bee.getPosition();
-            inputs[i] = pos.x;
-            i++;
-            inputs[i] = pos.y;
-            i++;
-
-            inputs[i] = bee.getOnFlower();
-            i++;
-            inputs[i] = bee.getInHive();
-            i++;
+        if (time > 5) {
+            isRunning = false;
         }
-
-        return inputs;
     }
-
-    private double[] addSensorInputs(int i, double[] inputs, BeeModel bee) {
-        double[] flowerSensors = bee.getFlowerSensors(),
-                obstacleSensors = bee.getObstacleSensors();
-
-        for(int j = 0; j < 8; j++) {
-            inputs[i + j] = flowerSensors[j];
-        }
-
-        for(int j = 0; j < 8; j++) {
-            inputs[i + j + 8] = obstacleSensors[j];
-        }
-
-        return inputs;
-    }
-
 
     public void beginContact(Contact contact) {//handle honey/nectar/pollination here
         Fixture fixA = contact.getFixtureA();

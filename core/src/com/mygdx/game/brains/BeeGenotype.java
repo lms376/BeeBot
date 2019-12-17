@@ -109,9 +109,9 @@ public class BeeGenotype {
 
     private static double fitness(final Genotype<DoubleGene> gt) {
         // Change this
-        double score = beeController.evaluate(gt, layers); //cannot pass in layers - static list same for all gt's
-        System.out.println("Score: " + score);
-        return score;
+        //double score = beeController.evaluate(gt, layers); //cannot pass in layers - static list same for all gt's
+        //System.out.println("Score: " + score);
+        return 0;
     }
 
     // The special mutator also variates the chromosome/genotype length.
