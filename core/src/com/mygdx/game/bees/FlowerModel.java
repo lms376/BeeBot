@@ -27,6 +27,7 @@ public class FlowerModel extends FlowerObstacle {
     }
 
     public void draw(GameCanvas canvas){
+        if (body == null) return;
         Vector2 position = body.getPosition();
 
         int width = (int) (FLOWER_WIDTH * drawScale.x);

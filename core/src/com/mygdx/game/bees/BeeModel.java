@@ -277,6 +277,7 @@ public class BeeModel extends BeeObstacle {
     }
 
     public void draw(GameCanvas canvas){
+        if (body == null) return;
         Vector2 position = body.getPosition();
 
         int diameter = (int) (BEE_HEIGHT * drawScale.y);
