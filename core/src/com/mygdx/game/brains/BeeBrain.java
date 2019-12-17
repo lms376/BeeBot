@@ -18,33 +18,34 @@ public class BeeBrain {
     private double score;
 
     public BeeBrain(Genotype<DoubleGene> gt){
-        int len = gt.length();
-        int[] layerList = new int[len];
-        int[] neuronList = new int[len+1];
-        neuronList[0] = 512;
-        neuronList[len] = 256;
-        Iterator<Chromosome<DoubleGene>> gtIter = gt.iterator();
-        int i = 0;
-        while(gtIter.hasNext()){
-            int genes = gtIter.next().length();
-
-        }
+        int[] layerList = getLayerStruct(gt);
         createNN(layerList, getWeights(gt));
     }
 
-    public BeeBrain(Genotype<DoubleGene> gt, int[] layers){
-        int len = gt.length();
-        int[] layerList = new int[len];
-        int[] neuronList = new int[len+1];
-        neuronList[0] = 512;
-        neuronList[len] = 256;
-        Iterator<Chromosome<DoubleGene>> gtIter = gt.iterator();
-        int i = 0;
-        while(gtIter.hasNext()){
-            int genes = gtIter.next().length();
+    public int[] getLayerStruct(Genotype<DoubleGene> gt){
+        int[] numNeurs = new int[gt.length()+1];
+
+        int i = 1;
+        int prevN = 28;//inNum;
+        numNeurs[0] = prevN;
+        int lastNum = 6;//outNum;
+        Iterator<Chromosome<DoubleGene>> geneIt = gt.iterator();
+
+        while(geneIt.hasNext()) {
+            if (i>1) prevN++;
+
+            Chromosome<DoubleGene> nextChrom = geneIt.next();
+            int numWeights = nextChrom.length();
+            int nextN = numWeights/(prevN);
+            numNeurs[i++] = nextN;
+            prevN = nextN;
 
         }
-        createNN(layers, getWeights(gt));
+
+        if(numNeurs[numNeurs.length-1]!=lastNum){ System.out.println("u fucked up");}
+
+        return numNeurs;
+
     }
 
     public void giveScore(double score) {
@@ -57,8 +58,6 @@ public class BeeBrain {
         network = new MultiLayerPerceptron(layers);
 
         //todo: fix weights
-        //weights = new double[network.getWeights().length];
-        //Arrays.fill(weights, 1);
 
         network.setWeights(weights);
 
@@ -70,9 +69,6 @@ public class BeeBrain {
         return network;
     }
 
-    double evaluate(){
-        return 0;
-    }
 
     private static double[] getWeights(Genotype<DoubleGene> genotype) {
         double[] weights = new double[genotype.geneCount()];
