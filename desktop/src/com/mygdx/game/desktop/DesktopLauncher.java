@@ -186,9 +186,17 @@ class Evolver {
 
         LwjglApplicationConfiguration.disableAudio = true;
 
+        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
+        config.forceExit = false;
+        config.width  = 1600;
+        config.height = 900;
+
+        GDXRoot root = new GDXRoot();
+        LwjglApplication app = new LwjglApplication(root, config);
+
         ISeq<Phenotype<DoubleGene, Double>> population = getPopulation(size, 0);
         for (int gen = 0; gen < generations; gen++) {
-            evolutionStep(population, gen);
+            evolutionStep(population, gen, app);
             population = selectAndMutate(population, gen);
         }
     }
@@ -233,9 +241,12 @@ class Evolver {
      * @param gen generation number
      * @return scores array
      */
-    private double[] evolutionStep(ISeq<Phenotype<DoubleGene, Double>> population, int gen)
+    private double[] evolutionStep(ISeq<Phenotype<DoubleGene, Double>> population, int gen, LwjglApplication app)
             throws ExecutionException, InterruptedException {
-
+        //Run game w/ beebrains
+        //collect results
+        //selectAndMutate with results
+        //gen++
         BeeBrain[] brains = new BeeBrain[population.length()];
         int i = 0;
 
@@ -244,43 +255,14 @@ class Evolver {
             brains[i++] = bb;
         }
 
-        //Run game w/ beebrains
-        //collect results
-        //selectAndMutate with results
-        //gen++
-        LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        config.forceExit = false;
-        config.title = "BeeGame#" + gen;
-        config.width  = 1600;
-        config.height = 900;
-
-        GDXRoot root = new GDXRoot(brains);
-        LwjglApplication app = new LwjglApplication(root, config);
-
-        System.out.println("is this happening");
-        Future<double[]> future = new Stepper().step(root, app);
+        Future<double[]> future = new Stepper().step(app, brains, gen);
         while(!future.isDone()) {
-            System.out.println("future not done");
-            Thread.sleep(500);
+            Thread.sleep(1000);
         }
+        System.out.println();
 
         double[] scores = future.get();
         fitnesses = scores;
-
-        new Thread(new Runnable(){//look into this later
-            @Override
-            public void run(){
-                Gdx.app.postRunnable(new Runnable(){
-                    @Override
-                    public void run(){
-                        System.out.println("HERE");
-                        app.exit();
-                    }
-                });
-            }
-        }).run();
-
-        //app.exit();
 
         return scores;
     }
@@ -288,18 +270,37 @@ class Evolver {
     class Stepper {
         private ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        Future<double[]> step(GDXRoot root, LwjglApplication app) {
+        Future<double[]> step(LwjglApplication app, BeeBrain[] brains, int gen) {
             return executor.submit(()  -> {
-                while(root.isLoading()) {
-                    System.out.print("loading");
+                GDXRoot root = (GDXRoot)app.getApplicationListener();
+                while(root == null) {
+                    System.out.print("no root...");
                     Thread.sleep(500);
+                    root = (GDXRoot)app.getApplicationListener();
                 }
+
+                root.set(brains);
+
+                if(gen == 0) {
+                    while (root.isLoading()) {
+                        System.out.print("loading...");
+                        Thread.sleep(500);
+                    }
+                    System.out.println();
+                }
+                System.out.println("---------------GEN " + gen + "---------------");
                 while(root.isRunning()) {
-                    System.out.print("running");
+                    System.out.print("running...");
                     Thread.sleep(500);
                 }
-                System.out.println("done waiting");
+                System.out.println();
+
                 double[] scores = root.getScores();
+                System.out.println("\n" + scores.length + " scores found");
+
+                System.out.print("resetting...");
+                ((GDXRoot)app.getApplicationListener()).reset();
+                System.out.println("reset");
 
                 return scores;
             });

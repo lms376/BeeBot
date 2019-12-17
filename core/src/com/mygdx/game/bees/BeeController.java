@@ -80,6 +80,7 @@ public class BeeController extends WorldController implements ContactListener {
 
     @Override
     public void reset() {
+        time = 0;
         Vector2 gravity = new Vector2(world.getGravity());
         for(Obstacle obj : objects) {
             obj.deactivatePhysics(world);
@@ -131,7 +132,7 @@ public class BeeController extends WorldController implements ContactListener {
 //        dwidth = beeTexture.getRegionWidth()/scale.x;
 //        dheight = beeTexture.getRegionHeight()/scale.y;
         generateBees();
-        testBee = bees[0];
+//        testBee = bees[0];
 //        bee = new BeeModel(15,10,0.5f,0.25f);
 //        bee.setDrawScale(scale);
 //        //bee.setTexture(beeTexture);
@@ -141,9 +142,12 @@ public class BeeController extends WorldController implements ContactListener {
 
     public void giveBrains(BeeBrain[] brains){
         this.brains = brains;
+
+        isRunning = true;
     }
 
     private void generateBees() {
+        if (brains == null) brains = new BeeBrain[0];
         BeeModel bee;
         bees = new BeeModel[brains.length];
         for (int i = 0; i < brains.length; i++) {
