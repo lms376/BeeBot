@@ -3,6 +3,7 @@ package com.mygdx.game.bees;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -294,6 +295,7 @@ public class BeeModel extends BeeObstacle {
 
     }
 
+    private Texture bee;
     public void draw(GameCanvas canvas){
         if (body == null || currentEnergy <= 0) return;
         Vector2 position = body.getPosition();
@@ -306,24 +308,25 @@ public class BeeModel extends BeeObstacle {
         float x = (position.x * drawScale.x) - width/2,
                 y = (position.y * drawScale.y) - radius;
 
-        Pixmap p = new Pixmap(width, diameter, Pixmap.Format.RGBA8888);
+        if (bee == null) {
+            Pixmap p = new Pixmap(width, diameter, Pixmap.Format.RGBA8888);
 
-        p.setColor(Color.SKY);
-        p.fill();
+            p.setColor(new Color(122/255f, 156/255f, 226/255f, 1));
+            p.fill();
 
-        //draw bee
-        p.setColor(Color.YELLOW);
-        p.fillCircle(radius, radius,radius);
-        p.fillCircle(radius + rectangleWidth, radius, radius);
-        p.fillRectangle(diameter/2, 0, rectangleWidth, diameter);
+            //draw bee
+            p.setColor(new Color(255/255f, 220/255f, 100/255f, 1));
+            p.fillCircle(radius, radius, radius);
+            p.fillCircle(radius + rectangleWidth, radius, radius);
+            p.fillRectangle(diameter / 2, 0, rectangleWidth, diameter);
 
-        Texture t = new Texture(p, Pixmap.Format.RGB888, false);
-
+            bee = new Texture(p, Pixmap.Format.RGB888, false);
+        }
 
 //25x12
       //  Texture t = new Texture("bee/test.png");
 
-        canvas.draw(t, x, y);
+        canvas.draw(bee, x, y);
 
         drawStatus(canvas, x, y);
     }
@@ -334,7 +337,7 @@ public class BeeModel extends BeeObstacle {
 
         Pixmap p = new Pixmap(width, (int)(height * 2.5), Pixmap.Format.RGBA8888);
 
-        p.setColor(Color.SKY);
+        p.setColor(new Color(122/255f, 156/255f, 226/255f, 1));
         p.fill();
 
         int energyWidth = (int) ((currentEnergy/MAX_ENERGY) * width);
@@ -349,5 +352,7 @@ public class BeeModel extends BeeObstacle {
         Texture t = new Texture(p, Pixmap.Format.RGB888, false);
 
         canvas.draw(t, x, y + (height*2.5f));
+
+        //canvas.drawText(brain.getScore() + " ", new BitmapFont(), x, y + (height*8));
     }
 }

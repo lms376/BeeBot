@@ -221,7 +221,9 @@ public class BeeController extends WorldController implements ContactListener {
         int max = maxTotal;
         if (maxFlowers > maxSide) max = maxSide;
 
-        int left = (int)(Math.random()*max);
+        int range = max - 4;
+
+        int left = (int)(Math.random()*range + 4);
         int maxRight = maxTotal - left > maxSide ? maxSide : maxTotal - left;
         int right = (int)(Math.random()*maxRight);
         if (left + right == 0) {

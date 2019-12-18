@@ -594,7 +594,7 @@ public abstract class WorldController implements Screen {
 
             if (bg == null) {
             	Pixmap p = new Pixmap(canvas.getWidth(), canvas.getHeight(), Pixmap.Format.RGB888);
-            	p.setColor(Color.SKY);
+            	p.setColor(new Color(122/255f, 156/255f, 226/255f, 1));
             	p.fill();
             	bg = new Texture(p);
 			}
