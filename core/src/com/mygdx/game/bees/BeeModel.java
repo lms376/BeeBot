@@ -202,9 +202,6 @@ public class BeeModel extends BeeObstacle {
         nn.calculate();
 
         double[] outputs = nn.getOutput();
-        if (id == 0) {
-            System.out.println();
-        }
         int maxI = 0; double max = 0;
         for(int i = 0; i < outputs.length; i++) {
             if (outputs[i] > max) {
@@ -212,7 +209,7 @@ public class BeeModel extends BeeObstacle {
                 max = outputs[i];
             }
         }
-        if(prev == maxI) System.out.println("same choice on bee" + brain.toString());
+
         prev = maxI;
 
         int j = maxI % outputs.length;
