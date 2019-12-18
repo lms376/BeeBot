@@ -102,8 +102,6 @@ public class BeeController extends WorldController implements ContactListener {
 
     public void populate(){
         //create objects
-        float dwidth;
-        float dheight;
         obstacles = new ArrayList<>();
 
         //ground
@@ -117,6 +115,37 @@ public class BeeController extends WorldController implements ContactListener {
         ground.setName("ground");
         addObject(ground);
         obstacles.add(ground);
+
+        BoxObstacle top = new BoxObstacle(0, 900/scale.y + 1, 100, 2);
+        top.setBodyType(BodyDef.BodyType.StaticBody);
+        top.setDensity(BASIC_DENSITY);
+        top.setFriction(BASIC_FRICTION);
+        top.setRestitution(BASIC_RESTITUTION);
+        top.setDrawScale(scale);
+        top.setName("top");
+        addObject(top);
+        obstacles.add(top);
+
+        BoxObstacle left = new BoxObstacle(-1, 0, 2, 100);
+        left.setBodyType(BodyDef.BodyType.StaticBody);
+        left.setDensity(BASIC_DENSITY);
+        left.setFriction(BASIC_FRICTION);
+        left.setRestitution(BASIC_RESTITUTION);
+        left.setDrawScale(scale);
+        left.setName("left");
+        addObject(left);
+        obstacles.add(left);
+
+        BoxObstacle right = new BoxObstacle(1600/scale.x + 1, 0, 2, 100);
+        right.setBodyType(BodyDef.BodyType.StaticBody);
+        right.setDensity(BASIC_DENSITY);
+        right.setFriction(BASIC_FRICTION);
+        right.setRestitution(BASIC_RESTITUTION);
+        right.setDrawScale(scale);
+        right.setName("right");
+        addObject(right);
+        obstacles.add(right);
+
 
         //hive
         HiveObstacle hive = new HiveModel(15, 3 + (100/scale.y), 200/scale.x, 200/scale.y);
@@ -332,6 +361,14 @@ public class BeeController extends WorldController implements ContactListener {
         }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "flower")){
             BeeModel bee = (BeeModel) body2.getUserData();
             bee.setOnFlower(false);
+        }
+
+        if((fixA.getUserData() == "feet" && fixB.getUserData() == "hive")){
+            BeeModel bee = (BeeModel) body1.getUserData();
+            bee.setInHive(false);
+        }else if((fixB.getUserData() == "feet" && fixA.getUserData() == "hive")){
+            BeeModel bee = (BeeModel) body2.getUserData();
+            bee.setInHive(false);
         }
     }
 
