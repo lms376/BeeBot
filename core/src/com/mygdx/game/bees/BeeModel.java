@@ -31,6 +31,7 @@ public class BeeModel extends BeeObstacle {
     }
 
     private float TOTAL_HONEY;
+    private float TOTAL_POLLEN;
 
     private static final float BEE_DENSITY  =  1.0f;
     private static final float BEE_FRICTION = 0.1f;
@@ -107,6 +108,7 @@ public class BeeModel extends BeeObstacle {
     public float getPollen(){ return currentPollen; }
 
     public float incrPollen(float x){
+        TOTAL_POLLEN += x;
         if(currentPollen+x>MAX_POLLEN){
             currentPollen = MAX_POLLEN;
             return currentPollen;
@@ -128,6 +130,7 @@ public class BeeModel extends BeeObstacle {
     public float getEnergy(){ return currentEnergy; }
 
     public float incrEnergy(float x){
+        TOTAL_HONEY += x;
         if(currentEnergy+x>MAX_ENERGY){
             currentEnergy = MAX_ENERGY;
             return currentEnergy;
@@ -254,7 +257,7 @@ public class BeeModel extends BeeObstacle {
     }
 
     public void updateScore() {
-        brain.giveScore(TOTAL_HONEY);
+        brain.giveScore(TOTAL_HONEY+(.25*TOTAL_POLLEN));
     }
 
     public boolean activatePhysics(World world) {
