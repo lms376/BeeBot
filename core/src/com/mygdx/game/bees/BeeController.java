@@ -306,6 +306,7 @@ public class BeeController extends WorldController implements ContactListener {
     @Override
     public void update(float dt) {
         for(BeeModel bee : bees) {
+            bee.setSensors(flowers, obstacles);
             bee.getBestAction();
 
             if(bee.getOnFlower() == 1){
@@ -320,7 +321,7 @@ public class BeeController extends WorldController implements ContactListener {
         }
 
         time += dt;
-        if (time > 2) {
+        if (time > 10) {
             isRunning = false;
         }
     }

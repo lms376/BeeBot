@@ -207,6 +207,10 @@ class Evolver {
             evolutionStep(population, gen, app);
             population = selectAndMutate(population, gen);
             pop = population;
+
+            if (gen % 5 == 0) {
+                writePop(pop, gen);
+            }
         }
 
         writePop(population, generations);

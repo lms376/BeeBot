@@ -12,6 +12,7 @@ import com.mygdx.game.obstacle.BeeObstacle;
 import com.mygdx.game.obstacle.Obstacle;
 import org.neuroph.nnet.MultiLayerPerceptron;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class BeeModel extends BeeObstacle {
@@ -164,7 +165,8 @@ public class BeeModel extends BeeObstacle {
             Vector2 flowerPos = flower.getPosition();
             Vector2 distance = pos.cpy().sub(flowerPos);
 
-            double score = 1 / Math.abs(distance.len()),
+            //double score = 1 / Math.abs(distance.len()),
+            double score = distance.len(),
                     angle = distance.angle();
 
             flowerSensors[(int)(angle / 45)] += score;
@@ -179,7 +181,8 @@ public class BeeModel extends BeeObstacle {
             Vector2 obstaclePos = obstacle.getPosition();
             Vector2 distance = pos.cpy().sub(obstaclePos);
 
-            double score = Math.pow(distance.len(), 2),
+            //double score = Math.pow(distance.len(), 2),
+            double score = distance.len(),
                     angle = distance.angle();
 
             obstacleSensors[(int)(angle / 45)] += score;
