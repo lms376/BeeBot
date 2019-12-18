@@ -121,6 +121,8 @@ public class GDXRoot extends Game implements ScreenListener {
 	public boolean isRunning() { return ((BeeController)controller).isRunning(); }
 	public boolean isLoading() { return isLoading; }
 	public double[] getScores() {
+		brains = ((BeeController)controller).getBrains();
+
 		double[] scores = new double[brains.length];
 		int i = 0;
 		for(BeeBrain brain : brains) {

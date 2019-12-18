@@ -239,6 +239,7 @@ class Evolver {
         ISeq<Phenotype<DoubleGene, Double>> top25p = ts.select(popWithFit, count, Optimize.MAXIMUM);
 
         ISeq<Phenotype<DoubleGene, Double>> mutatedSeq = ISeq.of(top25p.get(0));
+        System.out.println("max fit: " + top25p.get(0).getFitness());
 
         DynamicMutator<DoubleGene, Double> dm = new DynamicMutator<>(DynamicMutator.DEFAULT_ALTER_PROBABILITY);
         AltererResult<DoubleGene, Double> alteredTop25p = dm.alter(top25p, gen);
@@ -276,7 +277,6 @@ class Evolver {
         while(!future.isDone()) {
             Thread.sleep(1000);
         }
-        System.out.println();
 
         double[] scores = future.get();
         fitnesses = scores;
@@ -320,7 +320,7 @@ class Evolver {
                     System.out.print("loading");
                     root.set(brains);
                     while (root.isLoading()) {
-                        System.out.print("...");
+                        System.out.print(".");
                         Thread.sleep(100);
                     }
                     System.out.println("loaded");
@@ -332,7 +332,7 @@ class Evolver {
                     System.out.print("resetting...");
                     root.reset(brains);
                     while (root.resetting()) {
-                        System.out.print("...");
+                        System.out.print(".");
                         Thread.sleep(100);
                     }
                     System.out.println("reset");
@@ -340,21 +340,13 @@ class Evolver {
 
                 System.out.print("running");
                 while(root.isRunning()) {
-                    System.out.print("...");
+                    System.out.print(".");
                     Thread.sleep(100);
                 }
                 System.out.println();
 
                 double[] scores = root.getScores();
-                System.out.println(format("%.2f", root.secondsElapsed()) + "s");
-                System.out.println("\n" + scores.length + " scores found");
-
-              //  System.out.print("resetting...");
-                //root.reset();while (root.resetting()) {
-//                    System.out.print("...");
-//                    Thread.sleep(1000);
-//                }
-             //   System.out.println("reset");
+                System.out.println("\n" + scores.length + " scores after " + format("%.2f", root.secondsElapsed()) + "s");
 
                 return scores;
             });

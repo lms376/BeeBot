@@ -37,6 +37,13 @@ public class BeeController extends WorldController implements ContactListener {
     private BeeModel testBee;
     private BeeBrain[] brains;
 
+    public BeeBrain[] getBrains() {
+        for (int i = 0; i < bees.length; i++) {
+            brains[i] = bees[i].brain;
+        }
+        return brains;
+    }
+
     private boolean isRunning;
 
     private static final float FLOWER_RATIO = 4/1;

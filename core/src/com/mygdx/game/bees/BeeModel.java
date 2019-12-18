@@ -63,8 +63,6 @@ public class BeeModel extends BeeObstacle {
     public Affine2 affineCache = new Affine2();
     public BeeBrain brain;
 
-    private boolean alive;
-
     public Vector2 getForce(){
         return force;
     }
@@ -81,7 +79,7 @@ public class BeeModel extends BeeObstacle {
     private void addHoney(float add) { TOTAL_HONEY += add; }
 
     public int getAlive() {
-        if(alive) return 1;
+        if(currentEnergy > 0) return 1;
         else return 0;
     }
 
@@ -147,9 +145,6 @@ public class BeeModel extends BeeObstacle {
             currentEnergy = 0;
             return -1;
         }
-    }
-    public void updatePath(HiveMind mind){
-        goal = mind.getDecision(this);
     }
 
     public void setSensors(ArrayList<FlowerModel> flowers, ArrayList<Obstacle> obstacles) {
@@ -282,7 +277,6 @@ public class BeeModel extends BeeObstacle {
         // Orient the force with rotation.
         affineCache.setToRotationRad(getAngle());
         affineCache.applyTo(force);
-
 
         body.applyForce(force, getPosition(), true);
 
