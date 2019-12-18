@@ -7,6 +7,7 @@ import org.neuroph.core.Layer;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.LearningRule;
 import org.neuroph.nnet.MultiLayerPerceptron;
+import org.neuroph.util.TransferFunctionType;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -54,15 +55,16 @@ public class BeeBrain {
     public double getScore() { return score; }
 
     public void createNN(int[] layers, double[] weights) {
-        network = new MultiLayerPerceptron(layers);
+        network = new MultiLayerPerceptron(layers);//in#, layer#, out#
+        network = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, layers);
 
         //todo: fix weights
 
 
 
         network.setWeights(weights);
-        network.setInputNeurons(network.getLayerAt(0).getNeurons());
-        network.setOutputNeurons(network.getLayerAt(layers.length-1).getNeurons());
+//        network.setInputNeurons(network.getLayerAt(0).getNeurons());
+//        network.setOutputNeurons(network.getLayerAt(layers.length-1).getNeurons());
     }
 
     public MultiLayerPerceptron getNetwork() {
