@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class BeeModel extends BeeObstacle {
 
-    public BeeModel(float x, float y, float width, float height, Vector2 hivePosition) {
+    public BeeModel(float x, float y, float width, float height, Vector2 hivePosition, int _id) {
         super(x, y, width, height);
 
         BEE_WIDTH = width;
@@ -29,7 +29,11 @@ public class BeeModel extends BeeObstacle {
         flowerSensors = new double[8];
         obstacleSensors = new double[8];
         HIVE_POSITION = hivePosition.cpy();
+
+        id = _id;
     }
+
+    private int id;
 
     private float TOTAL_HONEY;
     private float TOTAL_POLLEN;
@@ -185,15 +189,22 @@ public class BeeModel extends BeeObstacle {
     }
 
 
+    int prev;
     public void getBestAction() {
         double inputs[] = getInputs();
         //feed inputs into beebrain
 
+
+
         MultiLayerPerceptron nn = brain.getNetwork();
+        nn.reset();
         nn.setInput(inputs);
         nn.calculate();
-        double outputs[] = nn.getOutput();
 
+        double[] outputs = nn.getOutput();
+        if (id == 0) {
+            System.out.println();
+        }
         int maxI = 0; double max = 0;
         for(int i = 0; i < outputs.length; i++) {
             if (outputs[i] > max) {
@@ -201,6 +212,8 @@ public class BeeModel extends BeeObstacle {
                 max = outputs[i];
             }
         }
+        if(prev == maxI) System.out.println("same choice on bee" + brain.toString());
+        prev = maxI;
 
         int j = maxI % outputs.length;
         if (j > 0) updateFlaps(j);

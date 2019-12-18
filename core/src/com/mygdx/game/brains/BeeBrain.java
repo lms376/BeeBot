@@ -56,11 +56,12 @@ public class BeeBrain {
     public double getScore() { return score; }
 
     public void createNN(int[] layers, double[] weights) {
-        network = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, layers);
+        network = new MultiLayerPerceptron(TransferFunctionType.GAUSSIAN, layers);
 
         //todo: fix weights
 
         network.setWeights(weights);
+        network.connectInputsToOutputs();
 
     }
 

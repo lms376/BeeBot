@@ -191,7 +191,7 @@ public class BeeController extends WorldController implements ContactListener {
         BeeModel bee;
         bees = new BeeModel[brains.length];
         for (int i = 0; i < brains.length; i++) {
-            bee = new BeeModel(15, 3 + (100/scale.y) + .01f, 0.5f, 0.25f, new Vector2(15, 3 + (100/scale.y)));
+            bee = new BeeModel(15, 3 + (100/scale.y) + .01f, 0.5f, 0.25f, new Vector2(15, 3 + (100/scale.y)), i);
             bee.giveBrain(brains[i]);
             bee.setDrawScale(scale);
             addObject(bee);
