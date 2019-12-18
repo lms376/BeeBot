@@ -3,6 +3,7 @@ package com.mygdx.game.bees;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Affine2;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -10,34 +11,41 @@ import com.mygdx.game.GameCanvas;
 import com.mygdx.game.brains.BeeBrain;
 import com.mygdx.game.obstacle.BeeObstacle;
 import com.mygdx.game.obstacle.Obstacle;
+import org.neuroph.nnet.MultiLayerPerceptron;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class BeeModel extends BeeObstacle {
 
-    public BeeModel(float x, float y, float width, float height, Vector2 hivePosition) {
+    public BeeModel(float x, float y, float width, float height, Vector2 hivePosition, int _id) {
         super(x, y, width, height);
 
         BEE_WIDTH = width;
         BEE_HEIGHT = height;
-        currentEnergy = 0;
-        currentPollen = 200;
+        currentEnergy = MAX_ENERGY;
+        currentPollen = 0;
         TOTAL_HONEY = 0;
 
         flowerSensors = new double[8];
         obstacleSensors = new double[8];
         HIVE_POSITION = hivePosition.cpy();
+
+        id = _id;
     }
 
+    private int id;
+
     private float TOTAL_HONEY;
+    private float TOTAL_POLLEN;
 
     private static final float BEE_DENSITY  =  1.0f;
     private static final float BEE_FRICTION = 0.1f;
     private static final float BEE_RESTITUTION = 0.4f;
-    private static final float BEE_THRUST = 120.0f;
+    private static final float BEE_THRUST = 30.0f;
 
     private static final float MAX_POLLEN = 200f;
-    private static final float MAX_ENERGY = 1000f;
+    private static final float MAX_ENERGY = 500;
 
     private static Vector2 HIVE_POSITION;
 
@@ -60,8 +68,6 @@ public class BeeModel extends BeeObstacle {
     public Affine2 affineCache = new Affine2();
     public BeeBrain brain;
 
-    private boolean alive;
-
     public Vector2 getForce(){
         return force;
     }
@@ -75,10 +81,9 @@ public class BeeModel extends BeeObstacle {
     }
 
     private float getTotalHoney() { return TOTAL_HONEY; }
-    private void addHoney(float add) { TOTAL_HONEY += add; }
 
     public int getAlive() {
-        if(alive) return 1;
+        if(currentEnergy > 0) return 1;
         else return 0;
     }
 
@@ -106,12 +111,15 @@ public class BeeModel extends BeeObstacle {
     public float getPollen(){ return currentPollen; }
 
     public float incrPollen(float x){
-        if(currentPollen+x>MAX_POLLEN){
-            currentPollen = MAX_POLLEN;
-            return currentPollen;
-        }else{
-            return currentPollen += x;
-        }
+        if (currentEnergy > 0) {
+            TOTAL_POLLEN += x;
+            if (currentPollen + x > MAX_POLLEN) {
+                currentPollen = MAX_POLLEN;
+                return currentPollen;
+            } else {
+                return currentPollen += x;
+            }
+        } else return currentPollen;
     }
 
     public float decrPollen(float x){
@@ -127,12 +135,14 @@ public class BeeModel extends BeeObstacle {
     public float getEnergy(){ return currentEnergy; }
 
     public float incrEnergy(float x){
-        if(currentEnergy+x>MAX_ENERGY){
-            currentEnergy = MAX_ENERGY;
-            return currentEnergy;
-        }else{
-            return currentEnergy += x;
-        }
+        if (currentEnergy > 0) {
+            if (currentEnergy + x > MAX_ENERGY) {
+                currentEnergy = MAX_ENERGY;
+                return currentEnergy;
+            } else {
+                return currentEnergy += x;
+            }
+        } else return 0;
     }
 
     public float decrEnergy(float x){
@@ -142,9 +152,6 @@ public class BeeModel extends BeeObstacle {
             currentEnergy = 0;
             return -1;
         }
-    }
-    public void updatePath(HiveMind mind){
-        goal = mind.getDecision(this);
     }
 
     public void setSensors(ArrayList<FlowerModel> flowers, ArrayList<Obstacle> obstacles) {
@@ -160,7 +167,8 @@ public class BeeModel extends BeeObstacle {
             Vector2 flowerPos = flower.getPosition();
             Vector2 distance = pos.cpy().sub(flowerPos);
 
-            double score = 1 / Math.abs(distance.len()),
+            //double score = 1 / Math.abs(distance.len()),
+            double score = distance.len(),
                     angle = distance.angle();
 
             flowerSensors[(int)(angle / 45)] += score;
@@ -175,7 +183,8 @@ public class BeeModel extends BeeObstacle {
             Vector2 obstaclePos = obstacle.getPosition();
             Vector2 distance = pos.cpy().sub(obstaclePos);
 
-            double score = Math.pow(distance.len(), 2),
+            //double score = Math.pow(distance.len(), 2),
+            double score = distance.len(),
                     angle = distance.angle();
 
             obstacleSensors[(int)(angle / 45)] += score;
@@ -183,11 +192,16 @@ public class BeeModel extends BeeObstacle {
     }
 
 
+    int prev;
     public void getBestAction() {
         double inputs[] = getInputs();
         //feed inputs into beebrain
-        double outputs[] = new double[6];
+        MultiLayerPerceptron nn = brain.getNetwork();
+        nn.reset();
+        nn.setInput(inputs);
+        nn.calculate();
 
+        double[] outputs = nn.getOutput();
         int maxI = 0; double max = 0;
         for(int i = 0; i < outputs.length; i++) {
             if (outputs[i] > max) {
@@ -195,6 +209,8 @@ public class BeeModel extends BeeObstacle {
                 max = outputs[i];
             }
         }
+
+        prev = maxI;
 
         int j = maxI % outputs.length;
         if (j > 0) updateFlaps(j);
@@ -239,16 +255,20 @@ public class BeeModel extends BeeObstacle {
     }
 
     public void updateFlaps(int i) {
-        float angle = (i - 1)*45;
-        Vector2 v = new Vector2();
-        v.setAngle(angle);
-        v.setLength(BEE_THRUST);
-        force = v;
-        applyForce();
+        if (currentEnergy > 0) {
+            float angle = (i - 1)*45;
+            Vector2 v = new Vector2(0, BEE_THRUST);
+            //v.rotate(angle);
+            v.setAngle(angle);
+            //v.setLength(BEE_THRUST);
+            force = v;
+            applyForce();
+            decrEnergy(5);
+        }
     }
 
     public void updateScore() {
-        brain.giveScore(TOTAL_HONEY);
+            brain.giveScore(TOTAL_HONEY + (.25 * TOTAL_POLLEN));
     }
 
     public boolean activatePhysics(World world) {
@@ -271,13 +291,13 @@ public class BeeModel extends BeeObstacle {
         affineCache.setToRotationRad(getAngle());
         affineCache.applyTo(force);
 
-
         body.applyForce(force, getPosition(), true);
 
     }
 
+    private Texture bee;
     public void draw(GameCanvas canvas){
-        if (body == null) return;
+        if (body == null || currentEnergy <= 0) return;
         Vector2 position = body.getPosition();
 
         int diameter = (int) (BEE_HEIGHT * drawScale.y);
@@ -288,24 +308,25 @@ public class BeeModel extends BeeObstacle {
         float x = (position.x * drawScale.x) - width/2,
                 y = (position.y * drawScale.y) - radius;
 
-        Pixmap p = new Pixmap(width, diameter, Pixmap.Format.RGBA8888);
+        if (bee == null) {
+            Pixmap p = new Pixmap(width, diameter, Pixmap.Format.RGBA8888);
 
-        p.setColor(Color.SKY);
-        p.fill();
+            p.setColor(new Color(122/255f, 156/255f, 226/255f, 1));
+            p.fill();
 
-        //draw bee
-        p.setColor(Color.YELLOW);
-        p.fillCircle(radius, radius,radius);
-        p.fillCircle(radius + rectangleWidth, radius, radius);
-        p.fillRectangle(diameter/2, 0, rectangleWidth, diameter);
+            //draw bee
+            p.setColor(new Color(255/255f, 220/255f, 100/255f, 1));
+            p.fillCircle(radius, radius, radius);
+            p.fillCircle(radius + rectangleWidth, radius, radius);
+            p.fillRectangle(diameter / 2, 0, rectangleWidth, diameter);
 
-        Texture t = new Texture(p, Pixmap.Format.RGB888, false);
-
+            bee = new Texture(p, Pixmap.Format.RGB888, false);
+        }
 
 //25x12
       //  Texture t = new Texture("bee/test.png");
 
-        canvas.draw(t, x, y);
+        canvas.draw(bee, x, y);
 
         drawStatus(canvas, x, y);
     }
@@ -316,7 +337,7 @@ public class BeeModel extends BeeObstacle {
 
         Pixmap p = new Pixmap(width, (int)(height * 2.5), Pixmap.Format.RGBA8888);
 
-        p.setColor(new Color(0,0,0,0));
+        p.setColor(new Color(122/255f, 156/255f, 226/255f, 1));
         p.fill();
 
         int energyWidth = (int) ((currentEnergy/MAX_ENERGY) * width);
@@ -331,5 +352,7 @@ public class BeeModel extends BeeObstacle {
         Texture t = new Texture(p, Pixmap.Format.RGB888, false);
 
         canvas.draw(t, x, y + (height*2.5f));
+
+        //canvas.drawText(brain.getScore() + " ", new BitmapFont(), x, y + (height*8));
     }
 }

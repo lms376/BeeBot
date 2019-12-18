@@ -38,7 +38,7 @@ public class HiveModel extends HiveObstacle {
 
         Pixmap p = new Pixmap(width, height, Pixmap.Format.RGBA8888);
 
-        p.setColor(Color.GRAY);
+        p.setColor(new Color(162/255f, 138/255f, 111/255f, 1));
         p.fill();
 
         Texture t = new Texture(p, Pixmap.Format.RGB888, false);

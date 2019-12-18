@@ -121,6 +121,8 @@ public class GDXRoot extends Game implements ScreenListener {
 	public boolean isRunning() { return ((BeeController)controller).isRunning(); }
 	public boolean isLoading() { return isLoading; }
 	public double[] getScores() {
+		brains = ((BeeController)controller).getBrains();
+
 		double[] scores = new double[brains.length];
 		int i = 0;
 		for(BeeBrain brain : brains) {
@@ -226,7 +228,6 @@ public class GDXRoot extends Game implements ScreenListener {
 			isLoading = false;
 		} else if (exitCode == WorldController.EXIT_QUIT) {
 			// We quit the main application
-			//TODO: instead of exiting, return score for genotype
 			Gdx.app.exit();
 		}
 	}

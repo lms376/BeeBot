@@ -38,7 +38,7 @@ public class FlowerModel extends FlowerObstacle {
 
         Pixmap p = new Pixmap(width, height, Pixmap.Format.RGBA8888);
 
-        p.setColor(Color.MAGENTA);
+        p.setColor(new Color(255/255f, 174/255f, 201/255f, 1));
         p.fill();
 
         Texture t = new Texture(p, Pixmap.Format.RGB888, false);
