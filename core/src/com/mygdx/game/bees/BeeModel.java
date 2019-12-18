@@ -22,8 +22,8 @@ public class BeeModel extends BeeObstacle {
 
         BEE_WIDTH = width;
         BEE_HEIGHT = height;
-        currentEnergy = 0;
-        currentPollen = 200;
+        currentEnergy = MAX_ENERGY;
+        currentPollen = 0;
         TOTAL_HONEY = 0;
 
         flowerSensors = new double[8];
@@ -44,7 +44,7 @@ public class BeeModel extends BeeObstacle {
     private static final float BEE_THRUST = 30.0f;
 
     private static final float MAX_POLLEN = 200f;
-    private static final float MAX_ENERGY = 1000f;
+    private static final float MAX_ENERGY = 500;
 
     private static Vector2 HIVE_POSITION;
 
@@ -80,7 +80,6 @@ public class BeeModel extends BeeObstacle {
     }
 
     private float getTotalHoney() { return TOTAL_HONEY; }
-    private void addHoney(float add) { TOTAL_HONEY += add; }
 
     public int getAlive() {
         if(currentEnergy > 0) return 1;
@@ -111,13 +110,15 @@ public class BeeModel extends BeeObstacle {
     public float getPollen(){ return currentPollen; }
 
     public float incrPollen(float x){
-        TOTAL_POLLEN += x;
-        if(currentPollen+x>MAX_POLLEN){
-            currentPollen = MAX_POLLEN;
-            return currentPollen;
-        }else{
-            return currentPollen += x;
-        }
+        if (currentEnergy > 0) {
+            TOTAL_POLLEN += x;
+            if (currentPollen + x > MAX_POLLEN) {
+                currentPollen = MAX_POLLEN;
+                return currentPollen;
+            } else {
+                return currentPollen += x;
+            }
+        } else return currentPollen;
     }
 
     public float decrPollen(float x){
@@ -133,13 +134,14 @@ public class BeeModel extends BeeObstacle {
     public float getEnergy(){ return currentEnergy; }
 
     public float incrEnergy(float x){
-        TOTAL_HONEY += x;
-        if(currentEnergy+x>MAX_ENERGY){
-            currentEnergy = MAX_ENERGY;
-            return currentEnergy;
-        }else{
-            return currentEnergy += x;
-        }
+        if (currentEnergy > 0) {
+            if (currentEnergy + x > MAX_ENERGY) {
+                currentEnergy = MAX_ENERGY;
+                return currentEnergy;
+            } else {
+                return currentEnergy += x;
+            }
+        } else return 0;
     }
 
     public float decrEnergy(float x){
@@ -193,9 +195,6 @@ public class BeeModel extends BeeObstacle {
     public void getBestAction() {
         double inputs[] = getInputs();
         //feed inputs into beebrain
-
-
-
         MultiLayerPerceptron nn = brain.getNetwork();
         nn.reset();
         nn.setInput(inputs);
@@ -255,17 +254,20 @@ public class BeeModel extends BeeObstacle {
     }
 
     public void updateFlaps(int i) {
-        float angle = (i - 1)*45;
-        Vector2 v = new Vector2(0, BEE_THRUST);
-        //v.rotate(angle);
-        v.setAngle(angle);
-        //v.setLength(BEE_THRUST);
-        force = v;
-        applyForce();
+        if (currentEnergy > 0) {
+            float angle = (i - 1)*45;
+            Vector2 v = new Vector2(0, BEE_THRUST);
+            //v.rotate(angle);
+            v.setAngle(angle);
+            //v.setLength(BEE_THRUST);
+            force = v;
+            applyForce();
+            decrEnergy(5);
+        }
     }
 
     public void updateScore() {
-        brain.giveScore(TOTAL_HONEY+(.25*TOTAL_POLLEN));
+            brain.giveScore(TOTAL_HONEY + (.25 * TOTAL_POLLEN));
     }
 
     public boolean activatePhysics(World world) {
@@ -293,7 +295,7 @@ public class BeeModel extends BeeObstacle {
     }
 
     public void draw(GameCanvas canvas){
-        if (body == null) return;
+        if (body == null || currentEnergy <= 0) return;
         Vector2 position = body.getPosition();
 
         int diameter = (int) (BEE_HEIGHT * drawScale.y);
@@ -332,7 +334,7 @@ public class BeeModel extends BeeObstacle {
 
         Pixmap p = new Pixmap(width, (int)(height * 2.5), Pixmap.Format.RGBA8888);
 
-        p.setColor(new Color(0,0,0,0));
+        p.setColor(Color.SKY);
         p.fill();
 
         int energyWidth = (int) ((currentEnergy/MAX_ENERGY) * width);

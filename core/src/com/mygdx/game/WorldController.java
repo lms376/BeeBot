@@ -573,7 +573,8 @@ public abstract class WorldController implements Screen {
 			}
 		}
 	}
-	
+
+	private Texture bg;
 	/**
 	 * Draw the physics objects to the canvas
 	 *
@@ -589,6 +590,15 @@ public abstract class WorldController implements Screen {
             canvas.clear();
 
             canvas.begin();
+
+
+            if (bg == null) {
+            	Pixmap p = new Pixmap(canvas.getWidth(), canvas.getHeight(), Pixmap.Format.RGB888);
+            	p.setColor(Color.SKY);
+            	p.fill();
+            	bg = new Texture(p);
+			}
+            canvas.draw(bg, 0, 0);
             for (Obstacle obj : objects) {
                 if (obj != null) obj.draw(canvas);
             }
