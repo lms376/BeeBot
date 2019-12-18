@@ -35,7 +35,7 @@ public class BeeModel extends BeeObstacle {
     private static final float BEE_DENSITY  =  1.0f;
     private static final float BEE_FRICTION = 0.1f;
     private static final float BEE_RESTITUTION = 0.4f;
-    private static final float BEE_THRUST = 120.0f;
+    private static final float BEE_THRUST = 30.0f;
 
     private static final float MAX_POLLEN = 200f;
     private static final float MAX_ENERGY = 1000f;
@@ -190,6 +190,7 @@ public class BeeModel extends BeeObstacle {
 
         MultiLayerPerceptron nn = brain.getNetwork();
         nn.setInput(inputs);
+        nn.calculate();
         double outputs[] = nn.getOutput();
 
         int maxI = 0; double max = 0;
@@ -244,9 +245,10 @@ public class BeeModel extends BeeObstacle {
 
     public void updateFlaps(int i) {
         float angle = (i - 1)*45;
-        Vector2 v = new Vector2();
+        Vector2 v = new Vector2(0, BEE_THRUST);
+        //v.rotate(angle);
         v.setAngle(angle);
-        v.setLength(BEE_THRUST);
+        //v.setLength(BEE_THRUST);
         force = v;
         applyForce();
     }

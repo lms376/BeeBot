@@ -7,6 +7,7 @@ import org.neuroph.core.Layer;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.LearningRule;
 import org.neuroph.nnet.MultiLayerPerceptron;
+import org.neuroph.util.NeuronProperties;
 import org.neuroph.util.TransferFunctionType;
 
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class BeeBrain {
         Iterator<Chromosome<DoubleGene>> geneIt = gt.iterator();
 
         while(geneIt.hasNext()) {
-            if (i>1) prevN++;
+            if (i>0) prevN++;
 
             Chromosome<DoubleGene> nextChrom = geneIt.next();
             int numWeights = nextChrom.length();
@@ -42,7 +43,7 @@ public class BeeBrain {
 
         }
 
-        if(numNeurs[numNeurs.length-1]!=lastNum){ System.out.println("u fucked up");}
+//        if(numNeurs[numNeurs.length-1]!=lastNum){ System.out.println("u fucked up");}
 
         return numNeurs;
 
@@ -55,16 +56,12 @@ public class BeeBrain {
     public double getScore() { return score; }
 
     public void createNN(int[] layers, double[] weights) {
-        network = new MultiLayerPerceptron(layers);//in#, layer#, out#
         network = new MultiLayerPerceptron(TransferFunctionType.SIGMOID, layers);
 
         //todo: fix weights
 
-
-
         network.setWeights(weights);
-//        network.setInputNeurons(network.getLayerAt(0).getNeurons());
-//        network.setOutputNeurons(network.getLayerAt(layers.length-1).getNeurons());
+
     }
 
     public MultiLayerPerceptron getNetwork() {
